@@ -1,4 +1,79 @@
 Project Structure:
++-- CHANGELOG.md
++-- README.md
++-- config
+|   +-- webpack.config.md
++-- package.json
++-- public
+|   +-- index.html
+|   +-- manifest.json
+|   +-- robots.txt
++-- scripts
+|   +-- create_bdd.sh
+|   +-- create_files.sh
+|   +-- gen_proj.sh
+|   +-- generate_snapshot.sh
++-- specs
+|   +-- card_editor
+|   |   +-- create_card.feature
+|   |   +-- delete_card.feature
+|   |   +-- edit_card.feature
+|   +-- card_viewer
+|   |   +-- *
+|   +-- deck_management
+|       +-- add_card_to_deck.feature
+|       +-- create_deck.feature
+|       +-- delete_deck.feature
+|       +-- edit_deck.feature
+|       +-- export_deck.feature
+|       +-- remove_card_from_deck.feature
++-- src
+|   +-- App.md
+|   +-- components
+|   |   +-- cards
+|   |   +-- common
+|   |   +-- decks
+|   |   +-- layout
+|   +-- constants
+|   |   +-- appConstants.md
+|   +-- context
+|   |   +-- AppStateContext.md
+|   |   +-- ThemeContext.md
+|   +-- hooks
+|   |   +-- useCanvas.md
+|   |   +-- useDeck.md
+|   +-- index.md
+|   +-- pages
+|   |   +-- DeckManagement.md
+|   |   +-- Editor.md
+|   |   +-- Home.md
+|   +-- services
+|   |   +-- api.md
+|   |   +-- storage.md
+|   |   +-- storage.ts
+|   +-- styles
+|   |   +-- globalStyles.md
+|   |   +-- theme.md
+|   +-- types
+|   |   +-- Card.md
+|   |   +-- Card.ts
+|   |   +-- Deck.md
+|   |   +-- Deck.ts
+|   |   +-- Shape.md
+|   +-- utils
+|       +-- colorUtils.md
+|       +-- shapes.md
+|       +-- validators.md
++-- tests
+|   +-- e2e
+|   |   +-- *
+|   +-- integration
+|   |   +-- *
+|   +-- unit
+|       +-- components
+|       +-- hooks
+|       +-- utils
++-- tsconfig.json
 
 File Contents:
 
@@ -644,6 +719,44 @@ Defines the structure of a flash card, including all elements on both sides.
 - [ ] Add validation for Card properties
 - [ ] Implement JSON serialization and deserialization methods----------------------------------------
 
+File: ./src/types/Card.ts
+----------------------------------------
+export interface CardSide {
+  elements: CardElement[];
+}
+
+export interface CardElement {
+  id: string;
+  type: 'text' | 'rectangle' | 'circle';
+  content?: string;
+  style: ElementStyle;
+  position: Position;
+}
+
+export interface ElementStyle {
+  fontFamily?: string;
+  fontSize?: number;
+  fontColor?: string;
+  backgroundColor?: string;
+  borderColor?: string;
+  borderWidth?: number;
+}
+
+export interface Position {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface Card {
+  id: string;
+  deckId: string;
+  sideA: CardSide;
+  sideB: CardSide;
+}
+----------------------------------------
+
 File: ./src/types/Deck.md
 ----------------------------------------
 # Deck
@@ -672,6 +785,20 @@ Defines the structure of a deck, which is a collection of flash cards.
 - [ ] Implement the exportToJSON method
 - [ ] Implement the importFromJSON method
 - [ ] Add validation for Deck properties----------------------------------------
+
+File: ./src/types/Deck.ts
+----------------------------------------
+import { Card } from './Card';
+
+export interface Deck {
+  id: string;
+  name: string;
+  description: string;
+  cards: Card[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+----------------------------------------
 
 File: ./src/context/ThemeContext.md
 ----------------------------------------
@@ -1050,6 +1177,110 @@ const CardEditor: React.FC<CardEditorProps> = ({ cardId, onSave }) => {
 - [ ] Implement color picking for elements
 - [ ] Write unit tests for core functions----------------------------------------
 
+File: ./src/components/cards/CardEditor.tsx
+----------------------------------------
+import React, { useState } from 'react';
+import { Card } from '../../types/Card';
+
+interface CardEditorProps {
+  cardId: string | null;
+  onSave: (card: Card) => void;
+}
+
+const CardEditor: React.FC<CardEditorProps> = ({ cardId, onSave }) => {
+  const [sideAContent, setSideAContent] = useState('');
+  const [sideBContent, setSideBContent] = useState('');
+
+  const handleSave = () => {
+    const newCard: Card = {
+      id: cardId || Date.now().toString(),
+      deckId: '', // This should be set when adding to a deck
+      sideA: {
+        elements: [
+          {
+            id: 'text-a',
+            type: 'text',
+            content: sideAContent,
+            style: {},
+            position: { x: 0, y: 0, width: 200, height: 100 }
+          }
+        ]
+      },
+      sideB: {
+        elements: [
+          {
+            id: 'text-b',
+            type: 'text',
+            content: sideBContent,
+            style: {},
+            position: { x: 0, y: 0, width: 200, height: 100 }
+          }
+        ]
+      }
+    };
+    onSave(newCard);
+  };
+
+  return (
+    <div className="card-editor">
+      <div>
+        <h3>Side A</h3>
+        <textarea
+          value={sideAContent}
+          onChange={(e) => setSideAContent(e.target.value)}
+          placeholder="Enter content for Side A"
+        />
+      </div>
+      <div>
+        <h3>Side B</h3>
+        <textarea
+          value={sideBContent}
+          onChange={(e) => setSideBContent(e.target.value)}
+          placeholder="Enter content for Side B"
+        />
+      </div>
+      <button onClick={handleSave}>Save Card</button>
+    </div>
+  );
+};
+
+export default CardEditor;
+----------------------------------------
+
+File: ./src/components/cards/__tests__/CardEditor.test.tsx
+----------------------------------------
+import React from 'react';
+import { render, fireEvent, screen } from '@testing-library/react';
+import CardEditor from '../CardEditor';
+
+describe('CardEditor', () => {
+  it('renders input fields for both sides of the card', () => {
+    render(<CardEditor cardId={null} onSave={() => {}} />);
+    expect(screen.getByPlaceholderText('Enter content for Side A')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Enter content for Side B')).toBeInTheDocument();
+  });
+
+  it('calls onSave with the correct card data when save button is clicked', () => {
+    const mockSave = jest.fn();
+    render(<CardEditor cardId={null} onSave={mockSave} />);
+    
+    fireEvent.change(screen.getByPlaceholderText('Enter content for Side A'), { target: { value: 'Side A Content' } });
+    fireEvent.change(screen.getByPlaceholderText('Enter content for Side B'), { target: { value: 'Side B Content' } });
+    
+    fireEvent.click(screen.getByText('Save Card'));
+    
+    expect(mockSave).toHaveBeenCalledWith(expect.objectContaining({
+      sideA: expect.objectContaining({
+        elements: [expect.objectContaining({ content: 'Side A Content' })]
+      }),
+      sideB: expect.objectContaining({
+        elements: [expect.objectContaining({ content: 'Side B Content' })]
+      })
+    }));
+  });
+});
+----------------------------------------
+
 File: ./src/components/cards/CardViewer.md
 ----------------------------------------
 # CardViewer
@@ -1094,6 +1325,27 @@ const CardViewer: React.FC<CardViewerProps> = ({ cardId, onFlip }) => {
 - [ ] Add flip functionality
 - [ ] Implement smooth flip animation
 - [ ] Write unit tests----------------------------------------
+
+File: ./src/components/cards/CardViewer.tsx
+----------------------------------------
+import React from 'react';
+import { Card } from '../../types/Card';
+
+interface CardViewerProps {
+  card: Card;
+}
+
+const CardViewer: React.FC<CardViewerProps> = ({ card }) => {
+  return (
+    <div>
+      <h2>Card Viewer</h2>
+      {/* TODO: Implement card viewing functionality */}
+    </div>
+  );
+};
+
+export default CardViewer;
+----------------------------------------
 
 File: ./src/components/decks/DeckItem.md
 ----------------------------------------
@@ -1191,6 +1443,22 @@ const DeckManager: React.FC = () => {
 - [ ] Add JSON export functionality
 - [ ] Write unit tests for CRUD operations
 - [ ] Integrate with storage service for persistence----------------------------------------
+
+File: ./src/components/decks/DeckManager.tsx
+----------------------------------------
+import React from 'react';
+
+const DeckManager: React.FC = () => {
+  return (
+    <div>
+      <h2>Deck Manager</h2>
+      {/* TODO: Implement deck management functionality */}
+    </div>
+  );
+};
+
+export default DeckManager;
+----------------------------------------
 
 File: ./src/components/decks/DeckList.md
 ----------------------------------------
@@ -1573,5 +1841,32 @@ class ApiService {
 - [ ] Write unit tests
 - [ ] Document API endpoints and expected responses----------------------------------------
 
+File: ./src/services/storage.ts
+----------------------------------------
+import { Card } from '../types/Card';
+import { Deck } from '../types/Deck';
+
+const CARDS_KEY = 'flashcards_cards';
+const DECKS_KEY = 'flashcards_decks';
+
+export const saveCards = (cards: Card[]): void => {
+  localStorage.setItem(CARDS_KEY, JSON.stringify(cards));
+};
+
+export const getCards = (): Card[] => {
+  const cards = localStorage.getItem(CARDS_KEY);
+  return cards ? JSON.parse(cards) : [];
+};
+
+export const saveDecks = (decks: Deck[]): void => {
+  localStorage.setItem(DECKS_KEY, JSON.stringify(decks));
+};
+
+export const getDecks = (): Deck[] => {
+  const decks = localStorage.getItem(DECKS_KEY);
+  return decks ? JSON.parse(decks) : [];
+};
+----------------------------------------
+
 Summary:
-Total lines of user-generated content: 1387
+Total lines of user-generated content: 1579
