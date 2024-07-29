@@ -1,0 +1,71 @@
+# CardEditor
+
+## Purpose
+The CardEditor component is the core interface for creating and editing flash cards. It provides a canvas-based environment where users can add shapes, text, and manipulate elements to design both sides of a flash card.
+
+## Dependencies
+- react
+- react-konva
+- @material-ui/core
+- ../../hooks/useCanvas
+- ../../context/AppStateContext
+
+## Props
+- cardId: string | null (null for new card creation)
+- onSave: (card: Card) => void
+
+## Main Functionality
+1. Provide a canvas for drawing and manipulating shapes and text
+2. Allow switching between Side A and Side B of the card
+3. Offer tools for adding rectangles, circles, and text elements
+4. Enable selection, movement, resizing, and deletion of elements
+5. Provide color selection for shapes and text
+6. Implement undo/redo functionality for edit actions
+7. Save card data to local storage and trigger onSave prop
+
+## Component Structure
+```typescript
+const CardEditor: React.FC<CardEditorProps> = ({ cardId, onSave }) => {
+  // State management
+  // Canvas setup
+  // Tool selection
+  // Element manipulation functions
+  // Side switching logic
+  // Save functionality
+
+  return (
+    <div className="card-editor">
+      {/* Toolbar */}
+      {/* Canvas */}
+      {/* Side switch button */}
+      {/* Color picker */}
+      {/* Save button */}
+    </div>
+  );
+};
+```
+
+## Key Functions
+- addShape(type: ShapeType): void
+- addText(): void
+- selectElement(id: string): void
+- moveElement(id: string, x: number, y: number): void
+- resizeElement(id: string, width: number, height: number): void
+- deleteElement(id: string): void
+- switchSide(): void
+- saveCard(): void
+
+## State Management
+- Use local state for transient properties (selected element, current side)
+- Use AppStateContext for sharing card data across components
+
+## TODO
+- [ ] Implement basic canvas setup with react-konva
+- [ ] Create toolbar with shape and text tools
+- [ ] Implement shape and text addition functionality
+- [ ] Add selection and manipulation capabilities
+- [ ] Implement side switching
+- [ ] Create save functionality
+- [ ] Add undo/redo feature
+- [ ] Implement color picking for elements
+- [ ] Write unit tests for core functions
