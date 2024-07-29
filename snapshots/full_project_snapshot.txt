@@ -1,0 +1,1709 @@
+Project Structure:
+├── CHANGELOG.md
+├── README.md
+├── config/
+│   └── webpack.config.md
+├── public/
+│   ├── index.html
+├── scripts/
+│   ├── generate-esp32-code.md
+├── specs/
+│   ├── card_editor/
+│   │   ├── create_card.feature
+│   │   ├── delete_card.feature
+│   │   └── edit_card.feature
+│   ├── card_viewer/
+│   │   ├── flip_card.feature
+│   │   └── view_card.feature
+│   ├── deck_management/
+│   │   ├── add_card_to_deck.feature
+│   │   ├── create_deck.feature
+│   │   ├── delete_deck.feature
+│   │   ├── edit_deck.feature
+│   │   └── remove_card_from_deck.feature
+│   ├── esp32_code_generation/
+│   │   ├── generate_card_code.feature
+│   │   └── generate_deck_code.feature
+│   └── study_mode/
+│       ├── review_cards.feature
+│       ├── start_study_session.feature
+│       └── track_progress.feature
+├── src/
+│   ├── App.md
+│   ├── components/
+│   │   ├── cards/
+│   │   │   ├── CardEditor.md
+│   │   │   ├── CardList.md
+│   │   │   └── CardViewer.md
+│   │   ├── common/
+│   │   │   ├── Button.md
+│   │   │   ├── ColorPicker.md
+│   │   │   ├── Input.md
+│   │   │   └── Modal.md
+│   │   ├── decks/
+│   │   │   ├── DeckItem.md
+│   │   │   ├── DeckList.md
+│   │   │   └── DeckManager.md
+│   │   ├── layout/
+│   │   │   ├── Footer.md
+│   │   │   ├── Header.md
+│   │   │   └── Sidebar.md
+│   │   └── study/
+│   │       ├── ProgressTracker.md
+│   │       └── StudyMode.md
+│   ├── constants/
+│   │   └── appConstants.md
+│   ├── context/
+│   │   ├── AppStateContext.md
+│   │   └── ThemeContext.md
+│   ├── hooks/
+│   │   ├── useCanvas.md
+│   │   ├── useDeck.md
+│   │   └── useStudySession.md
+│   ├── index.md
+│   ├── pages/
+│   │   ├── DeckManagement.md
+│   │   ├── Editor.md
+│   │   ├── Home.md
+│   │   └── Study.md
+│   ├── services/
+│   │   ├── api.md
+│   │   ├── codeGenerator.md
+│   │   └── storage.md
+│   ├── styles/
+│   │   ├── globalStyles.md
+│   │   └── theme.md
+│   ├── types/
+│   │   ├── Card.md
+│   │   ├── Deck.md
+│   │   └── Shape.md
+│   └── utils/
+│       ├── colorUtils.md
+│       ├── shapes.md
+│       └── validators.md
+├── tests/
+│   ├── e2e/
+│   ├── integration/
+│   └── unit/
+│       ├── components/
+│       ├── hooks/
+│       └── utils/
+
+File Contents:
+
+File: ./CHANGELOG.md
+----------------------------------------
+----------------------------------------
+
+File: ./config/webpack.config.md
+----------------------------------------
+# webpack.config
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./specs/deck_management/remove_card_from_deck.feature
+----------------------------------------
+Feature: uremove card from deck
+
+  As a user
+  I want to remove card from deck
+  So that I can effectively manage my flash cards
+
+  Scenario: Successful remove card from deck
+    Given I am on the deck management page
+    When I perform the necessary actions to remove card from deck
+    Then I should see the expected result
+
+  Scenario: Unsuccessful remove card from deck
+    Given I am on the deck management page
+    When I perform invalid actions
+    Then I should see an appropriate error message
+----------------------------------------
+
+File: ./specs/deck_management/create_deck.feature
+----------------------------------------
+Feature: ucreate deck
+
+  As a user
+  I want to create deck
+  So that I can effectively manage my flash cards
+
+  Scenario: Successful create deck
+    Given I am on the deck management page
+    When I perform the necessary actions to create deck
+    Then I should see the expected result
+
+  Scenario: Unsuccessful create deck
+    Given I am on the deck management page
+    When I perform invalid actions
+    Then I should see an appropriate error message
+----------------------------------------
+
+File: ./specs/deck_management/add_card_to_deck.feature
+----------------------------------------
+Feature: uadd card to deck
+
+  As a user
+  I want to add card to deck
+  So that I can effectively manage my flash cards
+
+  Scenario: Successful add card to deck
+    Given I am on the deck management page
+    When I perform the necessary actions to add card to deck
+    Then I should see the expected result
+
+  Scenario: Unsuccessful add card to deck
+    Given I am on the deck management page
+    When I perform invalid actions
+    Then I should see an appropriate error message
+----------------------------------------
+
+File: ./specs/deck_management/delete_deck.feature
+----------------------------------------
+Feature: udelete deck
+
+  As a user
+  I want to delete deck
+  So that I can effectively manage my flash cards
+
+  Scenario: Successful delete deck
+    Given I am on the deck management page
+    When I perform the necessary actions to delete deck
+    Then I should see the expected result
+
+  Scenario: Unsuccessful delete deck
+    Given I am on the deck management page
+    When I perform invalid actions
+    Then I should see an appropriate error message
+----------------------------------------
+
+File: ./specs/deck_management/edit_deck.feature
+----------------------------------------
+Feature: uedit deck
+
+  As a user
+  I want to edit deck
+  So that I can effectively manage my flash cards
+
+  Scenario: Successful edit deck
+    Given I am on the deck management page
+    When I perform the necessary actions to edit deck
+    Then I should see the expected result
+
+  Scenario: Unsuccessful edit deck
+    Given I am on the deck management page
+    When I perform invalid actions
+    Then I should see an appropriate error message
+----------------------------------------
+
+File: ./specs/esp32_code_generation/generate_deck_code.feature
+----------------------------------------
+Feature: ugenerate deck code
+
+  As a user
+  I want to generate deck code
+  So that I can effectively manage my flash cards
+
+  Scenario: Successful generate deck code
+    Given I am on the esp32 code generation page
+    When I perform the necessary actions to generate deck code
+    Then I should see the expected result
+
+  Scenario: Unsuccessful generate deck code
+    Given I am on the esp32 code generation page
+    When I perform invalid actions
+    Then I should see an appropriate error message
+----------------------------------------
+
+File: ./specs/esp32_code_generation/generate_card_code.feature
+----------------------------------------
+Feature: ugenerate card code
+
+  As a user
+  I want to generate card code
+  So that I can effectively manage my flash cards
+
+  Scenario: Successful generate card code
+    Given I am on the esp32 code generation page
+    When I perform the necessary actions to generate card code
+    Then I should see the expected result
+
+  Scenario: Unsuccessful generate card code
+    Given I am on the esp32 code generation page
+    When I perform invalid actions
+    Then I should see an appropriate error message
+----------------------------------------
+
+File: ./specs/card_editor/delete_card.feature
+----------------------------------------
+Feature: udelete card
+
+  As a user
+  I want to delete card
+  So that I can effectively manage my flash cards
+
+  Scenario: Successful delete card
+    Given I am on the card editor page
+    When I perform the necessary actions to delete card
+    Then I should see the expected result
+
+  Scenario: Unsuccessful delete card
+    Given I am on the card editor page
+    When I perform invalid actions
+    Then I should see an appropriate error message
+----------------------------------------
+
+File: ./specs/card_editor/edit_card.feature
+----------------------------------------
+Feature: uedit card
+
+  As a user
+  I want to edit card
+  So that I can effectively manage my flash cards
+
+  Scenario: Successful edit card
+    Given I am on the card editor page
+    When I perform the necessary actions to edit card
+    Then I should see the expected result
+
+  Scenario: Unsuccessful edit card
+    Given I am on the card editor page
+    When I perform invalid actions
+    Then I should see an appropriate error message
+----------------------------------------
+
+File: ./specs/card_editor/create_card.feature
+----------------------------------------
+Feature: ucreate card
+
+  As a user
+  I want to create card
+  So that I can effectively manage my flash cards
+
+  Scenario: Successful create card
+    Given I am on the card editor page
+    When I perform the necessary actions to create card
+    Then I should see the expected result
+
+  Scenario: Unsuccessful create card
+    Given I am on the card editor page
+    When I perform invalid actions
+    Then I should see an appropriate error message
+----------------------------------------
+
+File: ./specs/study_mode/track_progress.feature
+----------------------------------------
+Feature: utrack progress
+
+  As a user
+  I want to track progress
+  So that I can effectively manage my flash cards
+
+  Scenario: Successful track progress
+    Given I am on the study mode page
+    When I perform the necessary actions to track progress
+    Then I should see the expected result
+
+  Scenario: Unsuccessful track progress
+    Given I am on the study mode page
+    When I perform invalid actions
+    Then I should see an appropriate error message
+----------------------------------------
+
+File: ./specs/study_mode/start_study_session.feature
+----------------------------------------
+Feature: ustart study session
+
+  As a user
+  I want to start study session
+  So that I can effectively manage my flash cards
+
+  Scenario: Successful start study session
+    Given I am on the study mode page
+    When I perform the necessary actions to start study session
+    Then I should see the expected result
+
+  Scenario: Unsuccessful start study session
+    Given I am on the study mode page
+    When I perform invalid actions
+    Then I should see an appropriate error message
+----------------------------------------
+
+File: ./specs/study_mode/review_cards.feature
+----------------------------------------
+Feature: ureview cards
+
+  As a user
+  I want to review cards
+  So that I can effectively manage my flash cards
+
+  Scenario: Successful review cards
+    Given I am on the study mode page
+    When I perform the necessary actions to review cards
+    Then I should see the expected result
+
+  Scenario: Unsuccessful review cards
+    Given I am on the study mode page
+    When I perform invalid actions
+    Then I should see an appropriate error message
+----------------------------------------
+
+File: ./specs/card_viewer/flip_card.feature
+----------------------------------------
+Feature: uflip card
+
+  As a user
+  I want to flip card
+  So that I can effectively manage my flash cards
+
+  Scenario: Successful flip card
+    Given I am on the card viewer page
+    When I perform the necessary actions to flip card
+    Then I should see the expected result
+
+  Scenario: Unsuccessful flip card
+    Given I am on the card viewer page
+    When I perform invalid actions
+    Then I should see an appropriate error message
+----------------------------------------
+
+File: ./specs/card_viewer/view_card.feature
+----------------------------------------
+Feature: uview card
+
+  As a user
+  I want to view card
+  So that I can effectively manage my flash cards
+
+  Scenario: Successful view card
+    Given I am on the card viewer page
+    When I perform the necessary actions to view card
+    Then I should see the expected result
+
+  Scenario: Unsuccessful view card
+    Given I am on the card viewer page
+    When I perform invalid actions
+    Then I should see an appropriate error message
+----------------------------------------
+
+File: ./README.md
+----------------------------------------
+# Flash Card Creator
+
+## Project Overview
+
+Flash Card Creator is an innovative web application designed to empower educators and students in creating interactive, ESP32-compatible flash cards. This tool bridges the gap between digital design and physical implementation, allowing users to create visually rich flash cards and generate code for use with ESP32 devices.
+
+## Key Features
+
+- Intuitive card editor with drag-and-drop interface
+- Support for text, shapes, and basic images
+- Two-sided card creation (Side A and Side B)
+- Deck management for organizing cards
+- ESP32 code generation for interactive physical implementations
+- Basic study mode with progress tracking
+- Import/Export functionality for sharing decks
+- Responsive design for desktop and tablet use
+
+## Technology Stack
+
+- Frontend: React with TypeScript
+- State Management: Redux Toolkit, React Query
+- UI Components: Material-UI (MUI)
+- Canvas Manipulation: Konva.js with react-konva
+- Form Handling: React Hook Form
+- Routing: React Router
+- Styling: Emotion (CSS-in-JS)
+- Local Storage: localforage
+- Testing: Jest, React Testing Library, Cypress
+- Build Tool: Webpack (via Create React App)
+- Deployment: Netlify/Vercel
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v14.x or later)
+- npm (v6.x or later) or Yarn
+
+### Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/flash-card-creator.git
+   cd flash-card-creator
+   ```
+
+2. Install dependencies:
+   ```
+   npm install
+   ```
+   or if using Yarn:
+   ```
+   yarn install
+   ```
+
+3. Start the development server:
+   ```
+   npm start
+   ```
+   or:
+   ```
+   yarn start
+   ```
+
+4. Open [http://localhost:3000](http://localhost:3000) to view the app in your browser.
+
+## Project Structure
+
+```
+flash-card-creator/
+├── public/            # Public assets
+├── src/               # Source files
+│   ├── components/    # Reusable React components
+│   ├── pages/         # Page components
+│   ├── hooks/         # Custom React hooks
+│   ├── context/       # React context files
+│   ├── services/      # API and service files
+│   ├── utils/         # Utility functions
+│   ├── types/         # TypeScript type definitions
+│   ├── styles/        # Global styles and themes
+│   └── constants/     # Application constants
+├── tests/             # Test files
+├── scripts/           # Utility scripts
+└── config/            # Configuration files
+```
+
+## Development Workflow
+
+1. Create a new branch for each feature or bug fix.
+2. Write tests for new functionality.
+3. Ensure all tests pass before submitting a pull request.
+4. Follow the established code style and conventions.
+5. Update documentation as necessary.
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for more details.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- [List any libraries, tools, or resources that significantly contributed to the project]----------------------------------------
+
+File: ./public/index.html
+----------------------------------------
+----------------------------------------
+
+File: ./scripts/generate-esp32-code.md
+----------------------------------------
+# generate-esp32-code
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/App.md
+----------------------------------------
+# App
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/types/Shape.md
+----------------------------------------
+# Shape
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/types/Card.md
+----------------------------------------
+# Card
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/types/Deck.md
+----------------------------------------
+# Deck
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/context/ThemeContext.md
+----------------------------------------
+# ThemeContext
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/context/AppStateContext.md
+----------------------------------------
+# AppStateContext
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/constants/appConstants.md
+----------------------------------------
+# appConstants
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/utils/shapes.md
+----------------------------------------
+# Shape Utilities
+
+## Purpose
+The shapes utility module provides helper functions for working with shape data in the application.
+
+## Dependencies
+- ../types/Shape
+
+## Main Functionality
+1. Create shape objects
+2. Perform calculations on shapes (e.g., area, perimeter)
+3. Transform shape data
+4. Validate shape properties
+
+## Utility Functions
+```typescript
+// Shape creation
+createRectangle(x: number, y: number, width: number, height: number): Rectangle;
+createCircle(x: number, y: number, radius: number): Circle;
+createText(x: number, y: number, text: string): Text;
+
+// Shape calculations
+calculateArea(shape: Shape): number;
+calculatePerimeter(shape: Shape): number;
+
+// Shape transformations
+scaleShape(shape: Shape, factor: number): Shape;
+rotateShape(shape: Shape, angle: number): Shape;
+
+// Validation
+isValidShape(shape: Shape): boolean;
+```
+
+## TODO
+- [ ] Implement shape creation functions
+- [ ] Add calculation functions
+- [ ] Create transformation utilities
+- [ ] Implement shape validation
+- [ ] Write unit tests for all functions----------------------------------------
+
+File: ./src/utils/colorUtils.md
+----------------------------------------
+# Color Utilities
+
+## Purpose
+The colorUtils module provides helper functions for working with colors in the application.
+
+## Dependencies
+None
+
+## Main Functionality
+1. Convert between color formats (HEX, RGB, HSL)
+2. Generate color palettes
+3. Manipulate colors (lighten, darken, saturate)
+4. Calculate color contrast
+
+## Utility Functions
+```typescript
+// Color conversion
+hexToRgb(hex: string): { r: number; g: number; b: number };
+rgbToHex(r: number, g: number, b: number): string;
+rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number };
+
+// Color manipulation
+lightenColor(color: string, amount: number): string;
+darkenColor(color: string, amount: number): string;
+saturateColor(color: string, amount: number): string;
+
+// Color palette
+generateComplementaryColor(color: string): string;
+generateAnalogousColors(color: string): string[];
+
+// Contrast
+calculateContrast(color1: string, color2: string): number;
+```
+
+## TODO
+- [ ] Implement color conversion functions
+- [ ] Create color manipulation utilities
+- [ ] Add palette generation functions
+- [ ] Implement contrast calculation
+- [ ] Write unit tests for all functions----------------------------------------
+
+File: ./src/utils/validators.md
+----------------------------------------
+# validators
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/styles/globalStyles.md
+----------------------------------------
+# globalStyles
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/styles/theme.md
+----------------------------------------
+# theme
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/components/study/ProgressTracker.md
+----------------------------------------
+# ProgressTracker
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/components/study/StudyMode.md
+----------------------------------------
+# StudyMode
+
+## Purpose
+The StudyMode component provides an interface for users to study their flash cards, tracking progress and allowing for card navigation.
+
+## Dependencies
+- react
+- @material-ui/core
+- ../cards/CardViewer
+- ../../hooks/useStudySession
+- ../../types/Deck
+
+## Props
+- deckId: string
+
+## Main Functionality
+1. Display cards from the selected deck one at a time
+2. Allow navigation between cards (next, previous)
+3. Track and display study progress
+4. Provide options to mark cards as known or for review
+5. Implement spaced repetition algorithm for card ordering
+
+## Component Structure
+```typescript
+const StudyMode: React.FC<StudyModeProps> = ({ deckId }) => {
+  // Study session state management
+  // Card navigation logic
+  // Progress tracking
+
+  return (
+    <div className="study-mode">
+      {/* Current card display */}
+      {/* Navigation controls */}
+      {/* Progress indicator */}
+      {/* Known/Review buttons */}
+    </div>
+  );
+};
+```
+
+## TODO
+- [ ] Implement study session initialization
+- [ ] Create card navigation functionality
+- [ ] Add progress tracking and display
+- [ ] Implement known/review marking system
+- [ ] Integrate basic spaced repetition algorithm
+- [ ] Write unit tests----------------------------------------
+
+File: ./src/components/layout/Footer.md
+----------------------------------------
+# Footer
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/components/layout/Header.md
+----------------------------------------
+# Header
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/components/layout/Sidebar.md
+----------------------------------------
+# Sidebar
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/components/cards/CardList.md
+----------------------------------------
+# CardList
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/components/cards/CardEditor.md
+----------------------------------------
+# CardEditor
+
+## Purpose
+The CardEditor component is the core interface for creating and editing flash cards. It provides a canvas-based environment where users can add shapes, text, and manipulate elements to design both sides of a flash card.
+
+## Dependencies
+- react
+- react-konva
+- @material-ui/core
+- ../../hooks/useCanvas
+- ../../context/AppStateContext
+
+## Props
+- cardId: string | null (null for new card creation)
+- onSave: (card: Card) => void
+
+## Main Functionality
+1. Provide a canvas for drawing and manipulating shapes and text
+2. Allow switching between Side A and Side B of the card
+3. Offer tools for adding rectangles, circles, and text elements
+4. Enable selection, movement, resizing, and deletion of elements
+5. Provide color selection for shapes and text
+6. Implement undo/redo functionality for edit actions
+7. Save card data to local storage and trigger onSave prop
+
+## Component Structure
+```typescript
+const CardEditor: React.FC<CardEditorProps> = ({ cardId, onSave }) => {
+  // State management
+  // Canvas setup
+  // Tool selection
+  // Element manipulation functions
+  // Side switching logic
+  // Save functionality
+
+  return (
+    <div className="card-editor">
+      {/* Toolbar */}
+      {/* Canvas */}
+      {/* Side switch button */}
+      {/* Color picker */}
+      {/* Save button */}
+    </div>
+  );
+};
+```
+
+## Key Functions
+- addShape(type: ShapeType): void
+- addText(): void
+- selectElement(id: string): void
+- moveElement(id: string, x: number, y: number): void
+- resizeElement(id: string, width: number, height: number): void
+- deleteElement(id: string): void
+- switchSide(): void
+- saveCard(): void
+
+## State Management
+- Use local state for transient properties (selected element, current side)
+- Use AppStateContext for sharing card data across components
+
+## TODO
+- [ ] Implement basic canvas setup with react-konva
+- [ ] Create toolbar with shape and text tools
+- [ ] Implement shape and text addition functionality
+- [ ] Add selection and manipulation capabilities
+- [ ] Implement side switching
+- [ ] Create save functionality
+- [ ] Add undo/redo feature
+- [ ] Implement color picking for elements
+- [ ] Write unit tests for core functions----------------------------------------
+
+File: ./src/components/cards/CardViewer.md
+----------------------------------------
+# CardViewer
+
+## Purpose
+The CardViewer component displays a single flash card, allowing users to flip between Side A and Side B. It's used in both study mode and deck management.
+
+## Dependencies
+- react
+- @material-ui/core
+- ../../types/Card
+- ../../hooks/useCard
+
+## Props
+- cardId: string
+- onFlip?: () => void
+
+## Main Functionality
+1. Display the current side of the card (A or B)
+2. Provide a mechanism to flip the card
+3. Render shapes and text as defined in the card data
+4. Optionally trigger onFlip callback when the card is flipped
+
+## Component Structure
+```typescript
+const CardViewer: React.FC<CardViewerProps> = ({ cardId, onFlip }) => {
+  // State for current side
+  // Card data fetching logic
+
+  return (
+    <div className="card-viewer">
+      {/* Card content rendering */}
+      {/* Flip button */}
+    </div>
+  );
+};
+```
+
+## TODO
+- [ ] Implement card data fetching
+- [ ] Create rendering logic for shapes and text
+- [ ] Add flip functionality
+- [ ] Implement smooth flip animation
+- [ ] Write unit tests----------------------------------------
+
+File: ./src/components/decks/DeckItem.md
+----------------------------------------
+# DeckItem
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/components/decks/DeckManager.md
+----------------------------------------
+# DeckManager
+
+## Purpose
+The DeckManager component provides an interface for creating, viewing, updating, and deleting decks of flash cards. It also allows users to manage cards within each deck.
+
+## Dependencies
+- react
+- @material-ui/core
+- react-beautiful-dnd
+- ../../hooks/useDeck
+- ../../services/storage
+- ../cards/CardList
+
+## Props
+None (manages its own state)
+
+## Main Functionality
+1. Display a list of all decks
+2. Allow creation of new decks
+3. Enable editing of deck names and descriptions
+4. Provide functionality to delete decks
+5. Display cards within a selected deck
+6. Allow reordering of cards within a deck
+7. Provide options to add or remove cards from a deck
+
+## Component Structure
+```typescript
+const DeckManager: React.FC = () => {
+  // State management
+  // CRUD operations for decks
+  // Card management within decks
+
+  return (
+    <div className="deck-manager">
+      {/* Deck list */}
+      {/* New deck button */}
+      {/* Selected deck details */}
+      {/* Card list for selected deck */}
+    </div>
+  );
+};
+```
+
+## Key Functions
+- createDeck(name: string, description?: string): void
+- updateDeck(id: string, name: string, description?: string): void
+- deleteDeck(id: string): void
+- selectDeck(id: string): void
+- addCardToDeck(deckId: string, cardId: string): void
+- removeCardFromDeck(deckId: string, cardId: string): void
+- reorderCardsInDeck(deckId: string, startIndex: number, endIndex: number): void
+
+## State Management
+- Use local state for UI-specific properties (selected deck, edit mode)
+- Use useDeck hook for deck-related operations and state
+
+## TODO
+- [ ] Implement deck list display
+- [ ] Create new deck functionality
+- [ ] Add deck editing and deletion features
+- [ ] Implement deck selection
+- [ ] Create card list display for selected deck
+- [ ] Add drag-and-drop reordering for cards
+- [ ] Implement add/remove card functionality
+- [ ] Write unit tests for CRUD operations
+- [ ] Integrate with storage service for persistence----------------------------------------
+
+File: ./src/components/decks/DeckList.md
+----------------------------------------
+# DeckList
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/components/common/Input.md
+----------------------------------------
+# Input
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/components/common/Modal.md
+----------------------------------------
+# Modal
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/components/common/Button.md
+----------------------------------------
+# Button
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/components/common/ColorPicker.md
+----------------------------------------
+# ColorPicker
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/index.md
+----------------------------------------
+# index
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/hooks/useCanvas.md
+----------------------------------------
+# useCanvas
+
+## Purpose
+The useCanvas hook manages the state and operations for the canvas used in the CardEditor component.
+
+## Dependencies
+- react
+- konva
+- ../types/Shape
+
+## Functionality
+1. Manage canvas state (shapes, selected shape, etc.)
+2. Provide functions for adding, modifying, and deleting shapes
+3. Handle shape selection and deselection
+4. Manage undo/redo functionality
+
+## Hook Structure
+```typescript
+const useCanvas = (initialShapes: Shape[] = []) => {
+  // State management
+  // Shape manipulation functions
+  // Undo/redo logic
+
+  return {
+    shapes,
+    selectedShape,
+    addShape,
+    updateShape,
+    deleteShape,
+    selectShape,
+    undo,
+    redo,
+  };
+};
+```
+
+## TODO
+- [ ] Implement shape state management
+- [ ] Create shape manipulation functions
+- [ ] Add selection logic
+- [ ] Implement undo/redo functionality
+- [ ] Write unit tests----------------------------------------
+
+File: ./src/hooks/useStudySession.md
+----------------------------------------
+# useStudySession
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/hooks/useDeck.md
+----------------------------------------
+# useDeck
+
+## Purpose
+The useDeck hook manages deck-related operations and state, providing an interface for components to interact with deck data.
+
+## Dependencies
+- react
+- ../services/storage
+- ../types/Deck
+- ../types/Card
+
+## Functionality
+1. Fetch and manage deck data
+2. Provide CRUD operations for decks
+3. Handle card management within decks
+4. Manage deck selection state
+
+## Hook Structure
+```typescript
+const useDeck = () => {
+  // Deck state management
+  // CRUD operations
+  // Card management functions
+
+  return {
+    decks,
+    selectedDeck,
+    createDeck,
+    updateDeck,
+    deleteDeck,
+    selectDeck,
+    addCardToDeck,
+    removeCardFromDeck,
+    reorderCardsInDeck,
+  };
+};
+```
+
+## TODO
+- [ ] Implement deck state management
+- [ ] Create CRUD operations for decks
+- [ ] Add card management functions
+- [ ] Integrate with storage service
+- [ ] Write unit tests----------------------------------------
+
+File: ./src/pages/Study.md
+----------------------------------------
+# Study
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/pages/Editor.md
+----------------------------------------
+# Editor
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/pages/Home.md
+----------------------------------------
+# Home
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/pages/DeckManagement.md
+----------------------------------------
+# DeckManagement
+
+## Purpose
+[Briefly describe the purpose of this file/component]
+
+## Dependencies
+- [List any dependencies]
+
+## Props (if applicable)
+- [List props and their types]
+
+## Main Functionality
+[Describe the main functionality or responsibilities]
+
+## TODO
+- [ ] Implement basic structure
+- [ ] Add necessary logic
+- [ ] Write unit tests
+----------------------------------------
+
+File: ./src/services/storage.md
+----------------------------------------
+# useDeck
+
+## Purpose
+The useDeck hook manages deck-related operations and state, providing an interface for components to interact with deck data.
+
+## Dependencies
+- react
+- ../services/storage
+- ../types/Deck
+- ../types/Card
+
+## Functionality
+1. Fetch and manage deck data
+2. Provide CRUD operations for decks
+3. Handle card management within decks
+4. Manage deck selection state
+
+## Hook Structure
+```typescript
+const useDeck = () => {
+  // Deck state management
+  // CRUD operations
+  // Card management functions
+
+  return {
+    decks,
+    selectedDeck,
+    createDeck,
+    updateDeck,
+    deleteDeck,
+    selectDeck,
+    addCardToDeck,
+    removeCardFromDeck,
+    reorderCardsInDeck,
+  };
+};
+```
+
+## TODO
+- [ ] Implement deck state management
+- [ ] Create CRUD operations for decks
+- [ ] Add card management functions
+- [ ] Integrate with storage service
+- [ ] Write unit tests----------------------------------------
+
+File: ./src/services/api.md
+----------------------------------------
+# API Service
+
+## Purpose
+The API service handles all communications with external APIs, including potential future backend services.
+
+## Dependencies
+- axios
+- ../types/Card
+- ../types/Deck
+
+## Main Functionality
+1. Handle API requests for future backend integration
+2. Manage authentication (if implemented in the future)
+3. Provide interfaces for data synchronization
+
+## Service Structure
+```typescript
+class ApiService {
+  private axiosInstance: AxiosInstance;
+
+  constructor();
+  
+  // Authentication methods (for future use)
+  login(credentials: Credentials): Promise<User>;
+  logout(): Promise<void>;
+
+  // Data synchronization methods
+  syncCards(cards: Card[]): Promise<Card[]>;
+  syncDecks(decks: Deck[]): Promise<Deck[]>;
+
+  // Other API methods as needed
+}
+```
+
+## TODO
+- [ ] Set up Axios instance
+- [ ] Implement authentication methods (placeholder for now)
+- [ ] Create data synchronization methods
+- [ ] Add error handling and request/response interceptors
+- [ ] Write unit tests
+- [ ] Document API endpoints and expected responses----------------------------------------
+
+File: ./src/services/codeGenerator.md
+----------------------------------------
+# CodeGenerator Service
+
+## Purpose
+The CodeGenerator service is responsible for translating flash card and deck data into ESP32-compatible C++ code. This enables users to implement their flash card designs on physical ESP32 devices.
+
+## Dependencies
+- ../../types/Card
+- ../../types/Deck
+- ../../types/Shape
+
+## Main Functionality
+1. Generate C++ code for individual cards
+2. Generate C++ code for entire decks
+3. Optimize generated code for ESP32 performance
+4. Handle different shape types (rectangles, circles, text)
+5. Manage card transitions and interactions
+
+## Service Structure
+```typescript
+class CodeGenerator {
+  private generateShapeCode(shape: Shape): string;
+  private generateCardCode(card: Card): string;
+  private generateSetupCode(): string;
+  private generateLoopCode(deck: Deck): string;
+
+  public generateDeckCode(deck: Deck): string;
+}
+```
+
+## Key Functions
+- generateDeckCode(deck: Deck): string
+  - Main function to generate the complete C++ code for a deck
+- generateShapeCode(shape: Shape): string
+  - Generates code for individual shapes (rectangle, circle, text)
+- generateCardCode(card: Card): string
+  - Generates code for rendering a single card (both sides)
+- generateSetupCode(): string
+  - Generates the setup() function for ESP32 initialization
+- generateLoopCode(deck: Deck): string
+  - Generates the loop() function for card display and interaction
+
+## Code Generation Strategy
+1. Generate necessary include statements and global variables
+2. Create setup() function for ESP32 and display initialization
+3. Generate functions for drawing each shape type
+4. Create functions for rendering each card (both sides)
+5. Implement a loop() function that handles card transitions and user input
+
+## Error Handling
+- Implement input validation to ensure all required card data is present
+- Provide meaningful error messages for invalid or unsupported card designs
+
+## Optimization Techniques
+- Use efficient drawing commands specific to the ESP32 platform
+- Minimize redundant code by creating reusable functions for common shapes
+- Optimize memory usage by storing card data in program memory (PROGMEM)
+
+## TODO
+- [ ] Implement basic code structure generation
+- [ ] Create functions for generating shape-specific code
+- [ ] Implement card rendering code generation
+- [ ] Add deck navigation and interaction code
+- [ ] Implement error handling and input validation
+- [ ] Optimize generated code for ESP32 performance
+- [ ] Write unit tests for code generation functions
+- [ ] Create integration tests with sample card and deck data----------------------------------------
+
+Summary:
+Total lines of user-generated content: 1382
