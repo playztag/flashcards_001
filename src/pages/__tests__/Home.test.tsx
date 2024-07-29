@@ -11,7 +11,7 @@ describe('Home component', () => {
   it('renders the title', () => {
     (storage.getCards as jest.Mock).mockReturnValue([]);
     render(<Router><Home /></Router>);
-    expect(screen.getByText('Flash Card Creator')).toBeInTheDocument();
+    expect(screen.getByText('Your Flash Cards')).toBeInTheDocument();
   });
 
   it('displays existing cards', () => {
@@ -26,6 +26,7 @@ describe('Home component', () => {
     (storage.getCards as jest.Mock).mockReturnValue(mockCards);
 
     render(<Router><Home /></Router>);
-    expect(screen.getByText('Question 1 - Answer 1')).toBeInTheDocument();
+    expect(screen.getByText('Question 1')).toBeInTheDocument();
+    expect(screen.getByText('Answer 1')).toBeInTheDocument();
   });
 });

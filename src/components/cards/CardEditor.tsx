@@ -47,27 +47,59 @@ const CardEditor: React.FC = () => {
   };
 
   return (
-    <div className="card-editor">
+    <div style={styles.cardEditor}>
       <h2>Create New Card</h2>
-      <div>
-        <h3>Side A</h3>
-        <textarea
-          value={sideAContent}
-          onChange={(e) => setSideAContent(e.target.value)}
-          placeholder="Enter content for Side A"
-        />
+      <div style={styles.canvas}>
+        <div style={styles.side}>
+          <h3>Side A</h3>
+          <textarea
+            value={sideAContent}
+            onChange={(e) => setSideAContent(e.target.value)}
+            placeholder="Enter content for Side A"
+            style={styles.textarea}
+          />
+        </div>
+        <div style={styles.side}>
+          <h3>Side B</h3>
+          <textarea
+            value={sideBContent}
+            onChange={(e) => setSideBContent(e.target.value)}
+            placeholder="Enter content for Side B"
+            style={styles.textarea}
+          />
+        </div>
       </div>
-      <div>
-        <h3>Side B</h3>
-        <textarea
-          value={sideBContent}
-          onChange={(e) => setSideBContent(e.target.value)}
-          placeholder="Enter content for Side B"
-        />
-      </div>
-      <button onClick={handleSave}>Save Card</button>
+      <button onClick={handleSave} style={styles.saveButton}>Save Card</button>
     </div>
   );
+};
+
+const styles = {
+  cardEditor: {
+    padding: '20px',
+  },
+  canvas: {
+    display: 'flex',
+    justifyContent: 'space-between',
+  },
+  side: {
+    flex: 1,
+    padding: '10px',
+    border: '1px solid #ccc',
+    margin: '10px',
+  },
+  textarea: {
+    width: '100%',
+    height: '200px',
+  },
+  saveButton: {
+    marginTop: '20px',
+    backgroundColor: '#4caf50',
+    color: 'white',
+    padding: '10px 20px',
+    border: 'none',
+    cursor: 'pointer',
+  },
 };
 
 export default CardEditor;

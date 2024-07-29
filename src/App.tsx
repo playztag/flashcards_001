@@ -1,8 +1,11 @@
 import React, { useEffect } from 'react';
-import { Route, Routes, Link } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import Editor from './pages/Editor';
 import DeckManagement from './pages/DeckManagement';
+import Header from './components/layout/Header';
+import Sidebar from './components/layout/Sidebar';
+import Footer from './components/layout/Footer';
 import './App.css';
 
 const App: React.FC = () => {
@@ -14,26 +17,30 @@ const App: React.FC = () => {
 
   return (
     <div className="App">
-      <header>
-        <h1>Flash Card Creator</h1>
-        <p style={{ color: 'red' }}>Debug: App component rendered</p>
-      </header>
-      <nav>
-        <ul>
-          <li><Link to="/">Home</Link></li>
-          <li><Link to="/editor">Create New Card</Link></li>
-          <li><Link to="/decks">Manage Decks</Link></li>
-        </ul>
-      </nav>
-      <main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/editor" element={<Editor />} />
-          <Route path="/decks" element={<DeckManagement />} />
-        </Routes>
-      </main>
+      <Header />
+      <div style={styles.mainContent}>
+        <Sidebar />
+        <main style={styles.main}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/editor" element={<Editor />} />
+            <Route path="/decks" element={<DeckManagement />} />
+          </Routes>
+        </main>
+      </div>
+      <Footer />
     </div>
   );
+};
+
+const styles = {
+  mainContent: {
+    display: 'flex',
+  },
+  main: {
+    flex: 1,
+    padding: '20px',
+  },
 };
 
 export default App;

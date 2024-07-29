@@ -6,7 +6,7 @@ The CardEditor component is the core interface for creating and editing flash ca
 ## Dependencies
 - react
 - react-konva
-- @material-ui/core
+- @emotion/styled
 - ../../hooks/useCanvas
 - ../../context/AppStateContext
 - ../../types/Card
@@ -24,42 +24,10 @@ The CardEditor component is the core interface for creating and editing flash ca
 6. Implement undo/redo functionality for edit actions
 7. Save card data to local storage and trigger onSave prop
 
-## Component Structure
-```typescript
-const CardEditor: React.FC<CardEditorProps> = ({ cardId, onSave }) => {
-  // State management
-  // Canvas setup
-  // Tool selection
-  // Element manipulation functions
-  // Save functionality
-
-  return (
-    <div className="card-editor">
-      {/* Toolbar */}
-      {/* Side A Canvas */}
-      {/* Side B Canvas */}
-      {/* Color picker */}
-      {/* Save button */}
-    </div>
-  );
-};
-```
-
-## Key Functions
-- addShape(side: 'A' | 'B', type: ShapeType): void
-- addText(side: 'A' | 'B'): void
-- selectElement(side: 'A' | 'B', id: string): void
-- moveElement(side: 'A' | 'B', id: string, x: number, y: number): void
-- resizeElement(side: 'A' | 'B', id: string, width: number, height: number): void
-- deleteElement(side: 'A' | 'B', id: string): void
-- saveCard(): void
-
-## State Management
-- Use local state for transient properties (selected element, current tool)
-- Use AppStateContext for sharing card data across components
-
 ## TODO
-- [ ] Implement basic canvas setup with react-konva
+- [x] Implement basic structure
+- [x] Add text input for both sides
+- [ ] Implement canvas setup with react-konva
 - [ ] Create toolbar with shape and text tools
 - [ ] Implement shape and text addition functionality
 - [ ] Add selection and manipulation capabilities
@@ -67,3 +35,4 @@ const CardEditor: React.FC<CardEditorProps> = ({ cardId, onSave }) => {
 - [ ] Add undo/redo feature
 - [ ] Implement color picking for elements
 - [ ] Write unit tests for core functions
+- [ ] Style component using Emotion

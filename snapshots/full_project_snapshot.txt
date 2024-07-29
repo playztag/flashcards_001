@@ -3,6 +3,8 @@ Project Structure:
 +-- README.md
 +-- config
 |   +-- webpack.config.md
++-- docs
+|   +-- ui_specs.md
 +-- package-lock.json
 +-- package.json
 +-- public
@@ -29,6 +31,7 @@ Project Structure:
 |       +-- export_deck.feature
 |       +-- remove_card_from_deck.feature
 +-- src
+|   +-- App.css
 |   +-- App.md
 |   +-- App.tsx
 |   +-- __tests__
@@ -536,6 +539,127 @@ Scenario: View newly created card in the list
     Then I should see the new card in the card list
     And the card count should increase by 1----------------------------------------
 
+File: ./docs/ui_specs.md
+----------------------------------------
+# Flash Card Creator SVG Layout Specification
+
+## Purpose
+This document outlines the SVG layout for the Flash Card Creator application, detailing each section and its components.
+
+## Layout Overview
+
+### Header
+- **Purpose**: Displays the application title and navigation menu.
+- **Components**:
+  - `rect`: Background rectangle for the header.
+  - `text`: Application title.
+  - `rect` and `text`: Navigation menu.
+
+### Sidebar
+- **Purpose**: Displays current deck information and a list of cards.
+- **Components**:
+  - `rect`: Background rectangle for the sidebar.
+  - `text`: Current deck title and card count.
+  - `rect`: Background for the card list.
+  - `text`: Card titles.
+
+### Main Content Area
+- **Purpose**: Card editor with toolbars and canvases for editing sides A and B of the cards.
+- **Components**:
+  - `rect`: Background rectangle for the main content area.
+  - `rect`: Toolbar background.
+  - Tool icons (rect, circle, polygon, text).
+  - Undo/redo icons (paths).
+  - Canvases for side A and side B (rectangles).
+  - Example shapes and text on canvases (rect, circle, text).
+  - Save button (rect and text).
+
+### Footer
+- **Purpose**: Displays application information and links.
+- **Components**:
+  - `rect`: Background rectangle for the footer.
+  - `text`: Footer content.
+
+### SVG Code
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900">
+  <!-- Background -->
+  <rect width="1200" height="900" fill="#f0f0f0"/>
+  
+  <!-- Header -->
+  <rect width="1200" height="60" fill="#4a90e2"/>
+  <text x="20" y="38" font-family="Arial, sans-serif" font-size="24" fill="white">Flash Card Creator</text>
+  <rect x="1000" y="15" width="180" height="30" fill="#3a7bd5"/>
+  <text x="1015" y="36" font-family="Arial, sans-serif" font-size="16" fill="white">Navigation Menu</text>
+  
+  <!-- Left Sidebar - Current Deck Info -->
+  <rect x="0" y="60" width="250" height="840" fill="#e0e0e0"/>
+  <text x="20" y="90" font-family="Arial, sans-serif" font-size="18" fill="#333">Current Deck: Physics</text>
+  <text x="20" y="120" font-family="Arial, sans-serif" font-size="16" fill="#666">Cards: 15</text>
+  
+  <!-- Card List -->
+  <rect x="10" y="140" width="230" height="660" fill="#f5f5f5"/>
+  <text x="20" y="165" font-family="Arial, sans-serif" font-size="16" fill="#333">Card 1: Newton's First Law</text>
+  <text x="20" y="195" font-family="Arial, sans-serif" font-size="16" fill="#333">Card 2: F = ma</text>
+  <text x="20" y="225" font-family="Arial, sans-serif" font-size="16" fill="#333">Card 3: Energy Conservation</text>
+  
+  <!-- New Card Button -->
+  <rect x="10" y="810" width="230" height="40" fill="#4caf50"/>
+  <text x="70" y="835" font-family="Arial, sans-serif" font-size="16" fill="white">Create New Card</text>
+  
+  <!-- Main Content Area - Card Editor -->
+  <rect x="250" y="60" width="950" height="800" fill="white"/>
+  
+  <!-- Toolbar -->
+  <rect x="250" y="60" width="950" height="50" fill="#f5f5f5"/>
+  <!-- Shape Tools -->
+  <rect x="270" y="70" width="30" height="30" fill="#ddd" stroke="#999"/>
+  <rect x="310" y="70" width="30" height="30" fill="#ddd" stroke="#999" rx="15"/>
+  <polygon points="360,70 375,100 345,100" fill="#ddd" stroke="#999"/>
+  <!-- Text Tool -->
+  <rect x="400" y="70" width="30" height="30" fill="#ddd" stroke="#999"/>
+  <text x="408" y="92" font-family="Arial, sans-serif" font-size="18" fill="#333">T</text>
+  <!-- Color Picker -->
+  <rect x="450" y="70" width="30" height="30" fill="url(#colorGradient)"/>
+  <!-- Undo/Redo -->
+  <path d="M500,85 h15 v-10 l10,10 l-10,10 v-10 h-15 z" fill="#666"/>
+  <path d="M570,85 h-15 v-10 l-10,10 l10,10 v-10 h15 z" fill="#666"/>
+  
+  <!-- Side A Canvas -->
+  <rect x="270" y="130" width="450" height="640" fill="white" stroke="#ccc" stroke-width="2"/>
+  <text x="460" y="160" font-family="Arial, sans-serif" font-size="20" fill="#333">Side A</text>
+  
+  <!-- Side B Canvas -->
+  <rect x="730" y="130" width="450" height="640" fill="white" stroke="#ccc" stroke-width="2"/>
+  <text x="920" y="160" font-family="Arial, sans-serif" font-size="20" fill="#333">Side B</text>
+  
+  <!-- Example Shapes on Canvas -->
+  <rect x="300" y="200" width="150" height="100" fill="#ff9800" stroke="#333" stroke-width="2"/>
+  <circle cx="900" cy="300" r="60" fill="#e91e63" stroke="#333" stroke-width="2"/>
+  <text x="350" y="400" font-family="Arial, sans-serif" font-size="18" fill="#333">Question</text>
+  <text x="800" y="400" font-family="Arial, sans-serif" font-size="18" fill="#333">Answer</text>
+  
+  <!-- Save Button -->
+  <rect x="1080" y="790" width="100" height="40" fill="#4caf50" rx="5"/>
+  <text x="1110" y="815" font-family="Arial, sans-serif" font-size="16" fill="white">Save</text>
+  
+  <!-- Footer -->
+  <rect x="0" y="860" width="1200" height="40" fill="#333"/>
+  <text x="20" y="885" font-family="Arial, sans-serif" font-size="14" fill="white">App Information</text>
+  <text x="1100" y="885" font-family="Arial, sans-serif" font-size="14" fill="white">Links</text>
+  
+  <!-- Definitions -->
+  <defs>
+    <linearGradient id="colorGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:rgb(255,0,0);stop-opacity:1" />
+      <stop offset="33%" style="stop-color:rgb(0,255,0);stop-opacity:1" />
+      <stop offset="67%" style="stop-color:rgb(0,0,255);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:rgb(255,255,0);stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>
+----------------------------------------
+
 File: ./README.md
 ----------------------------------------
 # Flash Card Creator
@@ -642,48 +766,85 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 File: ./public/index.html
 ----------------------------------------
-----------------------------------------
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flash Card Creator</title>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>----------------------------------------
 
 File: ./src/index.tsx
 ----------------------------------------
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router } from 'react-router-dom';
 import App from './App';
 
-ReactDOM.render(
-  <React.StrictMode>
-    <Router>
-      <App />
-    </Router>
-  </React.StrictMode>,
-  document.getElementById('root')
-);
-----------------------------------------
+console.log('Index.tsx: Script started');
+
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('Index.tsx: DOM fully loaded');
+  const rootElement = document.getElementById('root');
+  
+  if (rootElement) {
+    console.log('Index.tsx: Root element found');
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(
+      <React.StrictMode>
+        <Router>
+          <App />
+        </Router>
+      </React.StrictMode>
+    );
+    console.log('Index.tsx: App rendered');
+  } else {
+    console.error('Index.tsx: Root element not found');
+  }
+});
+
+console.log('Index.tsx: Script ended');----------------------------------------
 
 File: ./src/App.tsx
 ----------------------------------------
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Route, Routes, Link } from 'react-router-dom';
 import Home from './pages/Home';
 import Editor from './pages/Editor';
 import DeckManagement from './pages/DeckManagement';
+import './App.css';
 
 const App: React.FC = () => {
+  useEffect(() => {
+    console.log('App: Component mounted');
+  }, []);
+
+  console.log('App: Rendering');
+
   return (
     <div className="App">
+      <header>
+        <h1>Flash Card Creator</h1>
+        <p style={{ color: 'red' }}>Debug: App component rendered</p>
+      </header>
       <nav>
         <ul>
           <li><Link to="/">Home</Link></li>
-          <li><Link to="/editor">Card Editor</Link></li>
-          <li><Link to="/decks">Deck Management</Link></li>
+          <li><Link to="/editor">Create New Card</Link></li>
+          <li><Link to="/decks">Manage Decks</Link></li>
         </ul>
       </nav>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/editor" element={<Editor />} />
-        <Route path="/decks" element={<DeckManagement />} />
-      </Routes>
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/editor" element={<Editor />} />
+          <Route path="/decks" element={<DeckManagement />} />
+        </Routes>
+      </main>
     </div>
   );
 };
@@ -1005,6 +1166,38 @@ File: ./src/constants/appConstants.md
 - [ ] Write unit tests
 ----------------------------------------
 
+File: ./src/App.css
+----------------------------------------
+.App {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  header {
+    background-color: #f0f0f0;
+    padding: 10px;
+    margin-bottom: 20px;
+  }
+  
+  nav ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  nav ul li {
+    display: inline;
+    margin-right: 10px;
+  }
+  
+  main {
+    background-color: #ffffff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }----------------------------------------
+
 File: ./src/utils/shapes.md
 ----------------------------------------
 # Shape Utilities
@@ -1274,7 +1467,7 @@ The CardEditor component is the core interface for creating and editing flash ca
 ## Dependencies
 - react
 - react-konva
-- @material-ui/core
+- @emotion/styled
 - ../../hooks/useCanvas
 - ../../context/AppStateContext
 - ../../types/Card
@@ -1292,49 +1485,18 @@ The CardEditor component is the core interface for creating and editing flash ca
 6. Implement undo/redo functionality for edit actions
 7. Save card data to local storage and trigger onSave prop
 
-## Component Structure
-```typescript
-const CardEditor: React.FC<CardEditorProps> = ({ cardId, onSave }) => {
-  // State management
-  // Canvas setup
-  // Tool selection
-  // Element manipulation functions
-  // Save functionality
-
-  return (
-    <div className="card-editor">
-      {/* Toolbar */}
-      {/* Side A Canvas */}
-      {/* Side B Canvas */}
-      {/* Color picker */}
-      {/* Save button */}
-    </div>
-  );
-};
-```
-
-## Key Functions
-- addShape(side: 'A' | 'B', type: ShapeType): void
-- addText(side: 'A' | 'B'): void
-- selectElement(side: 'A' | 'B', id: string): void
-- moveElement(side: 'A' | 'B', id: string, x: number, y: number): void
-- resizeElement(side: 'A' | 'B', id: string, width: number, height: number): void
-- deleteElement(side: 'A' | 'B', id: string): void
-- saveCard(): void
-
-## State Management
-- Use local state for transient properties (selected element, current tool)
-- Use AppStateContext for sharing card data across components
-
 ## TODO
-- [ ] Implement basic canvas setup with react-konva
+- [x] Implement basic structure
+- [x] Add text input for both sides
+- [ ] Implement canvas setup with react-konva
 - [ ] Create toolbar with shape and text tools
 - [ ] Implement shape and text addition functionality
 - [ ] Add selection and manipulation capabilities
 - [ ] Create save functionality
 - [ ] Add undo/redo feature
 - [ ] Implement color picking for elements
-- [ ] Write unit tests for core functions----------------------------------------
+- [ ] Write unit tests for core functions
+- [ ] Style component using Emotion----------------------------------------
 
 File: ./src/components/cards/CardEditor.tsx
 ----------------------------------------
@@ -1343,16 +1505,17 @@ import { useNavigate } from 'react-router-dom';
 import { Card } from '../../types/Card';
 import { saveCards, getCards } from '../../services/storage';
 
-interface CardEditorProps {
-  onSave?: (card: Card) => void;
-}
-
-const CardEditor: React.FC<CardEditorProps> = ({ onSave }) => {
+const CardEditor: React.FC = () => {
   const [sideAContent, setSideAContent] = useState('');
   const [sideBContent, setSideBContent] = useState('');
   const navigate = useNavigate();
 
   const handleSave = () => {
+    if (!sideAContent || !sideBContent) {
+      alert('Both sides of the card must have content');
+      return;
+    }
+
     const newCard: Card = {
       id: Date.now().toString(),
       deckId: '',
@@ -1380,13 +1543,9 @@ const CardEditor: React.FC<CardEditorProps> = ({ onSave }) => {
       }
     };
 
-    const existingCards = getCards() || [];
+    const existingCards = getCards();
     saveCards([...existingCards, newCard]);
-    if (onSave) {
-      onSave(newCard);
-    } else if (navigate) {
-      navigate('/');
-    }
+    navigate('/');
   };
 
   return (
@@ -1585,15 +1744,12 @@ The DeckManager component provides an interface for creating, viewing, updating,
 
 ## Dependencies
 - react
-- @material-ui/core
+- @emotion/styled
 - react-beautiful-dnd
 - ../../hooks/useDeck
 - ../../services/storage
 - ../cards/CardList
 - ../../types/Deck
-
-## Props
-None (manages its own state)
 
 ## Main Functionality
 1. Display a list of all decks
@@ -1605,43 +1761,10 @@ None (manages its own state)
 7. Provide options to add or remove cards from a deck
 8. Allow exporting decks to JSON
 
-## Component Structure
-```typescript
-const DeckManager: React.FC = () => {
-  // State management
-  // CRUD operations for decks
-  // Card management within decks
-  // JSON export functionality
-
-  return (
-    <div className="deck-manager">
-      {/* Deck list */}
-      {/* New deck button */}
-      {/* Selected deck details */}
-      {/* Card list for selected deck */}
-      {/* Export to JSON button */}
-    </div>
-  );
-};
-```
-
-## Key Functions
-- createDeck(name: string, description?: string): void
-- updateDeck(id: string, name: string, description?: string): void
-- deleteDeck(id: string): void
-- selectDeck(id: string): void
-- addCardToDeck(deckId: string, cardId: string): void
-- removeCardFromDeck(deckId: string, cardId: string): void
-- reorderCardsInDeck(deckId: string, startIndex: number, endIndex: number): void
-- exportDeckToJSON(deckId: string): void
-
-## State Management
-- Use local state for UI-specific properties (selected deck, edit mode)
-- Use useDeck hook for deck-related operations and state
-
 ## TODO
+- [x] Implement basic structure
+- [x] Create new deck functionality
 - [ ] Implement deck list display
-- [ ] Create new deck functionality
 - [ ] Add deck editing and deletion features
 - [ ] Implement deck selection
 - [ ] Create card list display for selected deck
@@ -1649,7 +1772,8 @@ const DeckManager: React.FC = () => {
 - [ ] Implement add/remove card functionality
 - [ ] Add JSON export functionality
 - [ ] Write unit tests for CRUD operations
-- [ ] Integrate with storage service for persistence----------------------------------------
+- [ ] Integrate with storage service for persistence
+- [ ] Style component using Emotion----------------------------------------
 
 File: ./src/components/decks/DeckManager.tsx
 ----------------------------------------
@@ -1938,19 +2062,25 @@ File: ./src/react-app-env.d.ts
 
 File: ./src/pages/DeckManagement.tsx
 ----------------------------------------
-import React from 'react';
+import React, { useEffect } from 'react';
 
 const DeckManagement: React.FC = () => {
+  useEffect(() => {
+    console.log('DeckManagement: Component mounted');
+  }, []);
+
+  console.log('DeckManagement: Rendering');
+
   return (
     <div>
       <h1>DeckManagement</h1>
+      <p style={{ color: 'red' }}>Debug: DeckManagement component rendered</p>
       {/* TODO: Implement DeckManagement page */}
     </div>
   );
 };
 
-export default DeckManagement;
-----------------------------------------
+export default DeckManagement;----------------------------------------
 
 File: ./src/pages/Home.tsx
 ----------------------------------------
@@ -1963,22 +2093,32 @@ const Home: React.FC = () => {
   const [cards, setCards] = useState<Card[]>([]);
 
   useEffect(() => {
+    console.log('Home: Component mounted');
     const fetchedCards = getCards();
-    setCards(fetchedCards || []);
+    console.log('Home: Fetched cards', fetchedCards);
+    setCards(fetchedCards);
   }, []);
+
+  console.log('Home: Rendering');
 
   return (
     <div>
-      <h1>Flash Card Creator</h1>
+      <h2>Your Flash Cards</h2>
+      <p style={{ color: 'red' }}>Debug: Home component rendered. Card count: {cards.length}</p>
+      {cards.length === 0 ? (
+        <p>You don't have any cards yet. <Link to="/editor">Create your first card!</Link></p>
+      ) : (
+        <ul>
+          {cards.map((card) => (
+            <li key={card.id}>
+              <strong>Front:</strong> {card.sideA.elements[0]?.content}
+              <br />
+              <strong>Back:</strong> {card.sideB.elements[0]?.content}
+            </li>
+          ))}
+        </ul>
+      )}
       <Link to="/editor">Create New Card</Link>
-      <h2>Existing Cards:</h2>
-      <ul>
-        {cards?.map((card) => (
-          <li key={card.id}>
-            {card.sideA.elements[0]?.content} - {card.sideB.elements[0]?.content}
-          </li>
-        )) || <li>No cards available</li>}
-      </ul>
     </div>
   );
 };
@@ -1987,19 +2127,25 @@ export default Home;----------------------------------------
 
 File: ./src/pages/Editor.tsx
 ----------------------------------------
-import React from 'react';
+import React, { useEffect } from 'react';
 
 const Editor: React.FC = () => {
+  useEffect(() => {
+    console.log('Editor: Component mounted');
+  }, []);
+
+  console.log('Editor: Rendering');
+
   return (
     <div>
       <h1>Editor</h1>
+      <p style={{ color: 'red' }}>Debug: Editor component rendered</p>
       {/* TODO: Implement Editor page */}
     </div>
   );
 };
 
-export default Editor;
-----------------------------------------
+export default Editor;----------------------------------------
 
 File: ./src/pages/Editor.md
 ----------------------------------------
@@ -2028,22 +2174,32 @@ File: ./src/pages/Home.md
 # Home
 
 ## Purpose
-[Briefly describe the purpose of this file/component]
+The Home page serves as the main landing page for the application, displaying an overview of the user's decks and recent cards.
 
 ## Dependencies
-- [List any dependencies]
-
-## Props (if applicable)
-- [List props and their types]
+- react
+- @emotion/styled
+- react-router-dom
+- ../../components/decks/DeckList
+- ../../components/cards/CardList
+- ../../services/storage
 
 ## Main Functionality
-[Describe the main functionality or responsibilities]
+1. Display a list of user's decks
+2. Show recently created or studied cards
+3. Provide quick access to create new decks or cards
+4. Allow navigation to DeckManager and CardEditor
 
 ## TODO
-- [ ] Implement basic structure
-- [ ] Add necessary logic
-- [ ] Write unit tests
-----------------------------------------
+- [x] Implement basic structure
+- [x] Display list of cards
+- [ ] Implement deck list display
+- [ ] Add creation buttons for new decks and cards
+- [ ] Implement recently studied cards section
+- [ ] Style component using Emotion
+- [ ] Add quick access to study mode
+- [ ] Implement search functionality for decks and cards
+- [ ] Write unit tests----------------------------------------
 
 File: ./src/pages/__tests__/Home.test.tsx
 ----------------------------------------
@@ -2060,7 +2216,7 @@ describe('Home component', () => {
   it('renders the title', () => {
     (storage.getCards as jest.Mock).mockReturnValue([]);
     render(<Router><Home /></Router>);
-    expect(screen.getByText('Flash Card Creator')).toBeInTheDocument();
+    expect(screen.getByText('Your Flash Cards')).toBeInTheDocument();
   });
 
   it('displays existing cards', () => {
@@ -2075,9 +2231,11 @@ describe('Home component', () => {
     (storage.getCards as jest.Mock).mockReturnValue(mockCards);
 
     render(<Router><Home /></Router>);
-    expect(screen.getByText('Question 1 - Answer 1')).toBeInTheDocument();
+    expect(screen.getByText('Question 1')).toBeInTheDocument();
+    expect(screen.getByText('Answer 1')).toBeInTheDocument();
   });
-});----------------------------------------
+});
+----------------------------------------
 
 File: ./src/pages/DeckManagement.md
 ----------------------------------------
@@ -2220,4 +2378,4 @@ export const getDecks = (): Deck[] => {
 ----------------------------------------
 
 Summary:
-Total lines of user-generated content: 1878
+Total lines of user-generated content: 2025
