@@ -2,7 +2,6 @@ export interface CardSide {
   elements: CardElement[];
 }
 
-
 export interface ElementStyle {
   fontFamily?: string;
   fontSize?: number;
@@ -19,18 +18,12 @@ export interface Position {
   height: number;
 }
 
-
 export interface CardElement {
   id: string;
   type: 'text' | 'rectangle' | 'circle';
   content: string;
-  style: React.CSSProperties;
-  position: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
+  style: ElementStyle;
+  position: Position;
 }
 
 export interface Card {

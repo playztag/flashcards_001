@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import CardEditor from '../components/cards/CardEditor';
 
 const Editor: React.FC = () => {
   useEffect(() => {
@@ -10,8 +11,8 @@ const Editor: React.FC = () => {
   return (
     <div>
       <h1>Editor</h1>
+      <CardEditor />
       <p style={{ color: 'red' }}>Debug: Editor component rendered</p>
-      {/* TODO: Implement Editor page */}
     </div>
   );
 };

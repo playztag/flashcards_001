@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Sidebar: React.FC = () => {
   return (
@@ -11,7 +12,9 @@ const Sidebar: React.FC = () => {
         <p>Card 3: Energy Conservation</p>
         {/* Add more cards as necessary */}
       </div>
-      <button style={styles.newCardButton}>Create New Card</button>
+      <Link to="/editor">
+        <button style={styles.newCardButton}>Create New Card</button>
+      </Link>
     </aside>
   );
 };
