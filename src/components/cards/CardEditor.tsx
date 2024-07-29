@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card } from '../../types/Card';
+import { Card, CardElement } from '../../types/Card';
 import { saveCards, getCards } from '../../services/storage';
+import useUndoRedo from '../../hooks/useUndoRedo';
+import SideEditor from './SideEditor';
 
 const CardEditor: React.FC = () => {
-  const [sideAContent, setSideAContent] = useState('');
-  const [sideBContent, setSideBContent] = useState('');
+  const { state: sideAContent, set: setSideAContent, undo: undoA, redo: redoA } = useUndoRedo<CardElement[]>([]);
+  const { state: sideBContent, set: setSideBContent, undo: undoB, redo: redoB } = useUndoRedo<CardElement[]>([]);
   const navigate = useNavigate();
 
   const handleSave = () => {
-    if (!sideAContent || !sideBContent) {
+    if (!sideAContent.length || !sideBContent.length) {
       alert('Both sides of the card must have content');
       return;
     }
@@ -17,28 +19,8 @@ const CardEditor: React.FC = () => {
     const newCard: Card = {
       id: Date.now().toString(),
       deckId: '',
-      sideA: {
-        elements: [
-          {
-            id: 'text-a',
-            type: 'text',
-            content: sideAContent,
-            style: {},
-            position: { x: 0, y: 0, width: 200, height: 100 }
-          }
-        ]
-      },
-      sideB: {
-        elements: [
-          {
-            id: 'text-b',
-            type: 'text',
-            content: sideBContent,
-            style: {},
-            position: { x: 0, y: 0, width: 200, height: 100 }
-          }
-        ]
-      }
+      sideA: { elements: sideAContent },
+      sideB: { elements: sideBContent },
     };
 
     const existingCards = getCards();
@@ -50,24 +32,8 @@ const CardEditor: React.FC = () => {
     <div style={styles.cardEditor}>
       <h2>Create New Card</h2>
       <div style={styles.canvas}>
-        <div style={styles.side}>
-          <h3>Side A</h3>
-          <textarea
-            value={sideAContent}
-            onChange={(e) => setSideAContent(e.target.value)}
-            placeholder="Enter content for Side A"
-            style={styles.textarea}
-          />
-        </div>
-        <div style={styles.side}>
-          <h3>Side B</h3>
-          <textarea
-            value={sideBContent}
-            onChange={(e) => setSideBContent(e.target.value)}
-            placeholder="Enter content for Side B"
-            style={styles.textarea}
-          />
-        </div>
+        <SideEditor side="A" content={sideAContent} setContent={setSideAContent} undo={undoA} redo={redoA} />
+        <SideEditor side="B" content={sideBContent} setContent={setSideBContent} undo={undoB} redo={redoB} />
       </div>
       <button onClick={handleSave} style={styles.saveButton}>Save Card</button>
     </div>
@@ -81,16 +47,6 @@ const styles = {
   canvas: {
     display: 'flex',
     justifyContent: 'space-between',
-  },
-  side: {
-    flex: 1,
-    padding: '10px',
-    border: '1px solid #ccc',
-    margin: '10px',
-  },
-  textarea: {
-    width: '100%',
-    height: '200px',
   },
   saveButton: {
     marginTop: '20px',

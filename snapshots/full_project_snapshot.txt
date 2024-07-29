@@ -50,6 +50,7 @@ Project Structure:
 |   +-- hooks
 |   |   +-- useCanvas.md
 |   |   +-- useDeck.md
+|   |   +-- useUndoRedo.ts
 |   +-- index.md
 |   +-- index.tsx
 |   +-- pages
@@ -812,10 +813,13 @@ console.log('Index.tsx: Script ended');----------------------------------------
 File: ./src/App.tsx
 ----------------------------------------
 import React, { useEffect } from 'react';
-import { Route, Routes, Link } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import Editor from './pages/Editor';
 import DeckManagement from './pages/DeckManagement';
+import Header from './components/layout/Header';
+import Sidebar from './components/layout/Sidebar';
+import Footer from './components/layout/Footer';
 import './App.css';
 
 const App: React.FC = () => {
@@ -827,29 +831,34 @@ const App: React.FC = () => {
 
   return (
     <div className="App">
-      <header>
-        <h1>Flash Card Creator</h1>
-        <p style={{ color: 'red' }}>Debug: App component rendered</p>
-      </header>
-      <nav>
-        <ul>
-          <li><Link to="/">Home</Link></li>
-          <li><Link to="/editor">Create New Card</Link></li>
-          <li><Link to="/decks">Manage Decks</Link></li>
-        </ul>
-      </nav>
-      <main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/editor" element={<Editor />} />
-          <Route path="/decks" element={<DeckManagement />} />
-        </Routes>
-      </main>
+      <Header />
+      <div style={styles.mainContent}>
+        <Sidebar />
+        <main style={styles.main}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/editor" element={<Editor />} />
+            <Route path="/decks" element={<DeckManagement />} />
+          </Routes>
+        </main>
+      </div>
+      <Footer />
     </div>
   );
 };
 
-export default App;----------------------------------------
+const styles = {
+  mainContent: {
+    display: 'flex',
+  },
+  main: {
+    flex: 1,
+    padding: '20px',
+  },
+};
+
+export default App;
+----------------------------------------
 
 File: ./src/App.md
 ----------------------------------------
@@ -944,13 +953,6 @@ export interface CardSide {
   elements: CardElement[];
 }
 
-export interface CardElement {
-  id: string;
-  type: 'text' | 'rectangle' | 'circle';
-  content?: string;
-  style: ElementStyle;
-  position: Position;
-}
 
 export interface ElementStyle {
   fontFamily?: string;
@@ -968,11 +970,29 @@ export interface Position {
   height: number;
 }
 
+
+export interface CardElement {
+  id: string;
+  type: 'text' | 'rectangle' | 'circle';
+  content: string;
+  style: React.CSSProperties;
+  position: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+}
+
 export interface Card {
   id: string;
   deckId: string;
-  sideA: CardSide;
-  sideB: CardSide;
+  sideA: {
+    elements: CardElement[];
+  };
+  sideB: {
+    elements: CardElement[];
+  };
 }
 ----------------------------------------
 
@@ -1344,6 +1364,51 @@ export const globalStyles = css`
     margin: 0 auto;
     padding: 20px;
   }
+
+  header {
+    background-color: #4a90e2;
+    padding: 10px;
+    margin-bottom: 20px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  nav ul {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  nav ul li {
+    display: inline;
+    margin-right: 10px;
+  }
+
+  main {
+    background-color: #ffffff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+
+  aside {
+    width: 250px;
+    background-color: #e0e0e0;
+    padding: 10px;
+    height: 100vh;
+  }
+
+  footer {
+    width: 100%;
+    height: 40px;
+    background-color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    color: white;
+  }
 `;
 ----------------------------------------
 
@@ -1391,6 +1456,38 @@ File: ./src/components/layout/Footer.md
 - [ ] Write unit tests
 ----------------------------------------
 
+File: ./src/components/layout/Footer.tsx
+----------------------------------------
+import React from 'react';
+
+const Footer: React.FC = () => {
+  return (
+    <footer style={styles.footer}>
+      <p style={styles.footerText}>App Information</p>
+      <p style={styles.footerText}>Links</p>
+    </footer>
+  );
+};
+
+const styles = {
+  footer: {
+    width: '100%',
+    height: '40px',
+    backgroundColor: '#333',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '0 20px',
+    color: 'white'
+  },
+  footerText: {
+    fontSize: '14px',
+  },
+};
+
+export default Footer;
+----------------------------------------
+
 File: ./src/components/layout/Header.md
 ----------------------------------------
 # Header
@@ -1433,6 +1530,156 @@ File: ./src/components/layout/Sidebar.md
 - [ ] Implement basic structure
 - [ ] Add necessary logic
 - [ ] Write unit tests
+----------------------------------------
+
+File: ./src/components/layout/Header.tsx
+----------------------------------------
+import React from 'react';
+
+const Header: React.FC = () => {
+  return (
+    <header style={styles.header}>
+      <h1 style={styles.title}>Flash Card Creator</h1>
+      <div style={styles.navigation}>
+        <a href="/" style={styles.navLink}>Home</a>
+        <a href="/editor" style={styles.navLink}>Create New Card</a>
+        <a href="/decks" style={styles.navLink}>Manage Decks</a>
+      </div>
+    </header>
+  );
+};
+
+const styles = {
+  header: {
+    width: '100%',
+    height: '60px',
+    backgroundColor: '#4a90e2',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '0 20px',
+    color: 'white'
+  },
+  title: {
+    fontSize: '24px',
+  },
+  navigation: {
+    display: 'flex',
+    gap: '20px',
+  },
+  navLink: {
+    color: 'white',
+    textDecoration: 'none',
+  },
+};
+
+export default Header;
+----------------------------------------
+
+File: ./src/components/layout/Sidebar.tsx
+----------------------------------------
+import React from 'react';
+
+const Sidebar: React.FC = () => {
+  return (
+    <aside style={styles.sidebar}>
+      <h2 style={styles.deckTitle}>Current Deck: Physics</h2>
+      <p style={styles.cardCount}>Cards: 15</p>
+      <div style={styles.cardList}>
+        <p>Card 1: Newton's First Law</p>
+        <p>Card 2: F = ma</p>
+        <p>Card 3: Energy Conservation</p>
+        {/* Add more cards as necessary */}
+      </div>
+      <button style={styles.newCardButton}>Create New Card</button>
+    </aside>
+  );
+};
+
+const styles = {
+  sidebar: {
+    width: '250px',
+    backgroundColor: '#e0e0e0',
+    padding: '10px',
+    height: '100vh',
+  },
+  deckTitle: {
+    fontSize: '18px',
+    color: '#333',
+  },
+  cardCount: {
+    fontSize: '16px',
+    color: '#666',
+  },
+  cardList: {
+    backgroundColor: '#f5f5f5',
+    padding: '10px',
+    marginTop: '10px',
+    overflowY: 'auto' as 'auto', // Fix type error
+    height: 'calc(100% - 180px)',
+  },
+  newCardButton: {
+    width: '100%',
+    height: '40px',
+    backgroundColor: '#4caf50',
+    color: 'white',
+    border: 'none',
+    cursor: 'pointer',
+    marginTop: '10px',
+  },
+};
+
+export default Sidebar;
+----------------------------------------
+
+File: ./src/components/cards/ElementEditor.tsx
+----------------------------------------
+import React, { useState } from 'react';
+import { CardElement } from '../../types/Card';
+
+interface ElementEditorProps {
+  element: CardElement;
+  updateElement: (id: string, updatedElement: CardElement) => void;
+  deleteElement: (id: string) => void;
+}
+
+const ElementEditor: React.FC<ElementEditorProps> = ({ element, updateElement, deleteElement }) => {
+  const [content, setContent] = useState(element.content);
+  const [style, setStyle] = useState(element.style);
+  const [position, setPosition] = useState(element.position);
+
+  const handleSave = () => {
+    const updatedElement = { ...element, content, style, position };
+    updateElement(element.id, updatedElement);
+  };
+
+  return (
+    <div style={styles.elementEditor}>
+      {element.type === 'text' && (
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Enter text"
+          style={styles.textarea}
+        />
+      )}
+      <button onClick={handleSave}>Save</button>
+      <button onClick={() => deleteElement(element.id)}>Delete</button>
+    </div>
+  );
+};
+
+const styles = {
+  elementEditor: {
+    marginBottom: '10px',
+  },
+  textarea: {
+    width: '100%',
+    height: '100px',
+  },
+};
+
+export default ElementEditor;
 ----------------------------------------
 
 File: ./src/components/cards/CardList.md
@@ -1498,20 +1745,88 @@ The CardEditor component is the core interface for creating and editing flash ca
 - [ ] Write unit tests for core functions
 - [ ] Style component using Emotion----------------------------------------
 
+File: ./src/components/cards/SideEditor.tsx
+----------------------------------------
+import React from 'react';
+import { CardElement } from '../../types/Card';
+import ElementEditor from './ElementEditor'; 
+
+interface SideEditorProps {
+  side: string;
+  content: CardElement[];
+  setContent: React.Dispatch<React.SetStateAction<CardElement[]>>;
+  undo: () => void;
+  redo: () => void;
+}
+
+const SideEditor: React.FC<SideEditorProps> = ({ side, content, setContent, undo, redo }) => {
+  const addElement = (type: 'text' | 'rectangle' | 'circle') => {
+    const newElement: CardElement = {
+      id: Date.now().toString(),
+      type,
+      content: '',
+      style: {},
+      position: { x: 0, y: 0, width: 100, height: 100 },
+    };
+    setContent([...content, newElement]);
+  };
+
+  const updateElement = (id: string, updatedElement: CardElement) => {
+    setContent(content.map(el => (el.id === id ? updatedElement : el)));
+  };
+
+  const deleteElement = (id: string) => {
+    setContent(content.filter(el => el.id !== id));
+  };
+
+  return (
+    <div style={styles.side}>
+      <h3>Side {side}</h3>
+      {content.map(el => (
+        <ElementEditor
+          key={el.id}
+          element={el}
+          updateElement={updateElement}
+          deleteElement={deleteElement}
+        />
+      ))}
+      <button onClick={() => addElement('text')}>Add Text</button>
+      <button onClick={() => addElement('rectangle')}>Add Rectangle</button>
+      <button onClick={() => addElement('circle')}>Add Circle</button>
+      <button onClick={undo}>Undo</button>
+      <button onClick={redo}>Redo</button>
+    </div>
+  );
+};
+
+const styles = {
+  side: {
+    flex: 1,
+    padding: '10px',
+    border: '1px solid #ccc',
+    margin: '10px',
+  },
+};
+
+export default SideEditor;
+----------------------------------------
+
 File: ./src/components/cards/CardEditor.tsx
 ----------------------------------------
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card } from '../../types/Card';
+import { Card, CardElement } from '../../types/Card';
 import { saveCards, getCards } from '../../services/storage';
+import useUndoRedo from '../../hooks/useUndoRedo';
+import SideEditor from './SideEditor';
 
 const CardEditor: React.FC = () => {
-  const [sideAContent, setSideAContent] = useState('');
-  const [sideBContent, setSideBContent] = useState('');
+  const { state: sideAContent, set: setSideAContent, undo: undoA, redo: redoA } = useUndoRedo<CardElement[]>([]);
+  const { state: sideBContent, set: setSideBContent, undo: undoB, redo: redoB } = useUndoRedo<CardElement[]>([]);
   const navigate = useNavigate();
 
   const handleSave = () => {
-    if (!sideAContent || !sideBContent) {
+    if (!sideAContent.length || !sideBContent.length) {
       alert('Both sides of the card must have content');
       return;
     }
@@ -1519,28 +1834,8 @@ const CardEditor: React.FC = () => {
     const newCard: Card = {
       id: Date.now().toString(),
       deckId: '',
-      sideA: {
-        elements: [
-          {
-            id: 'text-a',
-            type: 'text',
-            content: sideAContent,
-            style: {},
-            position: { x: 0, y: 0, width: 200, height: 100 }
-          }
-        ]
-      },
-      sideB: {
-        elements: [
-          {
-            id: 'text-b',
-            type: 'text',
-            content: sideBContent,
-            style: {},
-            position: { x: 0, y: 0, width: 200, height: 100 }
-          }
-        ]
-      }
+      sideA: { elements: sideAContent },
+      sideB: { elements: sideBContent },
     };
 
     const existingCards = getCards();
@@ -1549,83 +1844,106 @@ const CardEditor: React.FC = () => {
   };
 
   return (
-    <div className="card-editor">
+    <div style={styles.cardEditor}>
       <h2>Create New Card</h2>
-      <div>
-        <h3>Side A</h3>
-        <textarea
-          value={sideAContent}
-          onChange={(e) => setSideAContent(e.target.value)}
-          placeholder="Enter content for Side A"
-        />
+      <div style={styles.canvas}>
+        <SideEditor side="A" content={sideAContent} setContent={setSideAContent} undo={undoA} redo={redoA} />
+        <SideEditor side="B" content={sideBContent} setContent={setSideBContent} undo={undoB} redo={redoB} />
       </div>
-      <div>
-        <h3>Side B</h3>
-        <textarea
-          value={sideBContent}
-          onChange={(e) => setSideBContent(e.target.value)}
-          placeholder="Enter content for Side B"
-        />
-      </div>
-      <button onClick={handleSave}>Save Card</button>
+      <button onClick={handleSave} style={styles.saveButton}>Save Card</button>
     </div>
   );
 };
 
-export default CardEditor;----------------------------------------
+const styles = {
+  cardEditor: {
+    padding: '20px',
+  },
+  canvas: {
+    display: 'flex',
+    justifyContent: 'space-between',
+  },
+  saveButton: {
+    marginTop: '20px',
+    backgroundColor: '#4caf50',
+    color: 'white',
+    padding: '10px 20px',
+    border: 'none',
+    cursor: 'pointer',
+  },
+};
+
+export default CardEditor;
+----------------------------------------
 
 File: ./src/components/cards/__tests__/CardEditor.test.tsx
 ----------------------------------------
 import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 import CardEditor from '../CardEditor';
 import * as storage from '../../../services/storage';
-import { BrowserRouter } from 'react-router-dom';
 
-// Mock react-router-dom
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: () => jest.fn(),
-}));
-
-// Mock storage
+// Mock the storage module
 jest.mock('../../../services/storage', () => ({
   getCards: jest.fn(() => []),
   saveCards: jest.fn(),
 }));
 
+// Utility function to render with Router
 const renderWithRouter = (ui: React.ReactElement) => {
-  return render(<BrowserRouter>{ui}</BrowserRouter>);
+  return render(<Router>{ui}</Router>);
 };
 
 describe('CardEditor', () => {
-  it('renders input fields for both sides of the card', () => {
+  it('renders CardEditor and saves a card', () => {
     renderWithRouter(<CardEditor />);
-    expect(screen.getByPlaceholderText('Enter content for Side A')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Enter content for Side B')).toBeInTheDocument();
+    const addTextButtonA = screen.getAllByText('Add Text')[0];
+    const addTextButtonB = screen.getAllByText('Add Text')[1];
+
+    // Add text to Side A
+    fireEvent.click(addTextButtonA);
+    const textareaA = screen.getAllByPlaceholderText('Enter text')[0];
+    fireEvent.change(textareaA, { target: { value: 'Side A Content' } });
+
+    // Add text to Side B
+    fireEvent.click(addTextButtonB);
+    const textareaB = screen.getAllByPlaceholderText('Enter text')[1];
+    fireEvent.change(textareaB, { target: { value: 'Side B Content' } });
+
+    // Save the card
+    const saveButton = screen.getByText('Save Card');
+    fireEvent.click(saveButton);
+
+    // Assert saveCards was called
+    expect(storage.saveCards).toHaveBeenCalled();
+    expect(storage.saveCards).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sideA: expect.objectContaining({
+            elements: expect.arrayContaining([
+              expect.objectContaining({ content: 'Side A Content' })
+            ])
+          }),
+          sideB: expect.objectContaining({
+            elements: expect.arrayContaining([
+              expect.objectContaining({ content: 'Side B Content' })
+            ])
+          })
+        })
+      ])
+    );
   });
 
-  it('calls onSave with the correct card data when save button is clicked', () => {
-    const mockSave = jest.fn();
-    renderWithRouter(<CardEditor onSave={mockSave} />);
-    
-    fireEvent.change(screen.getByPlaceholderText('Enter content for Side A'), { target: { value: 'Side A Content' } });
-    fireEvent.change(screen.getByPlaceholderText('Enter content for Side B'), { target: { value: 'Side B Content' } });
-    
-    fireEvent.click(screen.getByText('Save Card'));
-    
-    expect(storage.saveCards).toHaveBeenCalled();
-    expect(mockSave).toHaveBeenCalledWith(expect.objectContaining({
-      sideA: expect.objectContaining({
-        elements: [expect.objectContaining({ content: 'Side A Content' })]
-      }),
-      sideB: expect.objectContaining({
-        elements: [expect.objectContaining({ content: 'Side B Content' })]
-      })
-    }));
+  it('displays error when trying to save an empty card', () => {
+    renderWithRouter(<CardEditor />);
+    const saveButton = screen.getByText('Save Card');
+    fireEvent.click(saveButton);
+    expect(window.alert).toHaveBeenCalledWith('Both sides of the card must have content');
   });
-});----------------------------------------
+});
+----------------------------------------
 
 File: ./src/components/cards/CardViewer.md
 ----------------------------------------
@@ -2008,6 +2326,46 @@ const useCanvas = (initialShapes: Shape[] = []) => {
 - [ ] Implement undo/redo functionality
 - [ ] Write unit tests----------------------------------------
 
+File: ./src/hooks/useUndoRedo.ts
+----------------------------------------
+import { useState, useCallback } from 'react';
+
+const useUndoRedo = <T>(initialState: T) => {
+  const [state, setState] = useState<T>(initialState);
+  const [history, setHistory] = useState<T[]>([]);
+  const [redoStack, setRedoStack] = useState<T[]>([]);
+
+  const set: React.Dispatch<React.SetStateAction<T>> = useCallback(
+    (newState: React.SetStateAction<T>) => {
+      setHistory([...history, state]);
+      setState(newState);
+      setRedoStack([]);
+    },
+    [state, history]
+  );
+
+  const undo = useCallback(() => {
+    if (history.length === 0) return;
+    const previousState = history.pop()!;
+    setRedoStack([state, ...redoStack]);
+    setState(previousState);
+    setHistory(history);
+  }, [state, history, redoStack]);
+
+  const redo = useCallback(() => {
+    if (redoStack.length === 0) return;
+    const nextState = redoStack.shift()!;
+    setHistory([...history, state]);
+    setState(nextState);
+    setRedoStack(redoStack);
+  }, [state, history, redoStack]);
+
+  return { state, set, undo, redo };
+};
+
+export default useUndoRedo;
+----------------------------------------
+
 File: ./src/hooks/useDeck.md
 ----------------------------------------
 # useDeck
@@ -2378,4 +2736,4 @@ export const getDecks = (): Deck[] => {
 ----------------------------------------
 
 Summary:
-Total lines of user-generated content: 2025
+Total lines of user-generated content: 2358
