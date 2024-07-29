@@ -1,18 +1,40 @@
 # Card
 
 ## Purpose
-[Briefly describe the purpose of this file/component]
+Defines the structure of a flash card, including all elements on both sides.
 
-## Dependencies
-- [List any dependencies]
+## Properties
+- id: string
+- deckId: string
+- sideA: CardSide
+- sideB: CardSide
 
-## Props (if applicable)
-- [List props and their types]
+## CardSide
+- elements: Element[]
 
-## Main Functionality
-[Describe the main functionality or responsibilities]
+## Element
+- id: string
+- type: 'text' | 'rectangle' | 'circle'
+- content: string (for text)
+- style: ElementStyle
+- position: Position
+
+## ElementStyle
+- fontFamily?: string
+- fontSize?: number
+- fontColor?: string
+- backgroundColor?: string
+- borderColor?: string
+- borderWidth?: number
+
+## Position
+- x: number
+- y: number
+- width: number
+- height: number
 
 ## TODO
-- [ ] Implement basic structure
-- [ ] Add necessary logic
-- [ ] Write unit tests
+- [ ] Implement the Card type
+- [ ] Create functions for manipulating Card objects
+- [ ] Add validation for Card properties
+- [ ] Implement JSON serialization and deserialization methods

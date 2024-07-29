@@ -9,6 +9,7 @@ The CardEditor component is the core interface for creating and editing flash ca
 - @material-ui/core
 - ../../hooks/useCanvas
 - ../../context/AppStateContext
+- ../../types/Card
 
 ## Props
 - cardId: string | null (null for new card creation)
@@ -16,7 +17,7 @@ The CardEditor component is the core interface for creating and editing flash ca
 
 ## Main Functionality
 1. Provide a canvas for drawing and manipulating shapes and text
-2. Allow switching between Side A and Side B of the card
+2. Display Side A and Side B of the card side by side
 3. Offer tools for adding rectangles, circles, and text elements
 4. Enable selection, movement, resizing, and deletion of elements
 5. Provide color selection for shapes and text
@@ -30,14 +31,13 @@ const CardEditor: React.FC<CardEditorProps> = ({ cardId, onSave }) => {
   // Canvas setup
   // Tool selection
   // Element manipulation functions
-  // Side switching logic
   // Save functionality
 
   return (
     <div className="card-editor">
       {/* Toolbar */}
-      {/* Canvas */}
-      {/* Side switch button */}
+      {/* Side A Canvas */}
+      {/* Side B Canvas */}
       {/* Color picker */}
       {/* Save button */}
     </div>
@@ -46,17 +46,16 @@ const CardEditor: React.FC<CardEditorProps> = ({ cardId, onSave }) => {
 ```
 
 ## Key Functions
-- addShape(type: ShapeType): void
-- addText(): void
-- selectElement(id: string): void
-- moveElement(id: string, x: number, y: number): void
-- resizeElement(id: string, width: number, height: number): void
-- deleteElement(id: string): void
-- switchSide(): void
+- addShape(side: 'A' | 'B', type: ShapeType): void
+- addText(side: 'A' | 'B'): void
+- selectElement(side: 'A' | 'B', id: string): void
+- moveElement(side: 'A' | 'B', id: string, x: number, y: number): void
+- resizeElement(side: 'A' | 'B', id: string, width: number, height: number): void
+- deleteElement(side: 'A' | 'B', id: string): void
 - saveCard(): void
 
 ## State Management
-- Use local state for transient properties (selected element, current side)
+- Use local state for transient properties (selected element, current tool)
 - Use AppStateContext for sharing card data across components
 
 ## TODO
@@ -64,7 +63,6 @@ const CardEditor: React.FC<CardEditorProps> = ({ cardId, onSave }) => {
 - [ ] Create toolbar with shape and text tools
 - [ ] Implement shape and text addition functionality
 - [ ] Add selection and manipulation capabilities
-- [ ] Implement side switching
 - [ ] Create save functionality
 - [ ] Add undo/redo feature
 - [ ] Implement color picking for elements

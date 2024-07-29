@@ -2,32 +2,29 @@
 
 ## Project Overview
 
-Flash Card Creator is an innovative web application designed to empower educators and students in creating interactive, ESP32-compatible flash cards. This tool bridges the gap between digital design and physical implementation, allowing users to create visually rich flash cards and generate code for use with ESP32 devices.
+Flash Card Creator is a web application designed to help users create and manage digital flash cards. This tool allows users to create visually rich flash cards and organize them into decks for easy management and export.
 
 ## Key Features
 
 - Intuitive card editor with drag-and-drop interface
-- Support for text, shapes, and basic images
+- Support for text and basic shapes
 - Two-sided card creation (Side A and Side B)
 - Deck management for organizing cards
-- ESP32 code generation for interactive physical implementations
-- Basic study mode with progress tracking
-- Import/Export functionality for sharing decks
+- JSON export functionality for sharing decks
 - Responsive design for desktop and tablet use
 
 ## Technology Stack
 
 - Frontend: React with TypeScript
-- State Management: Redux Toolkit, React Query
+- State Management: Redux Toolkit
 - UI Components: Material-UI (MUI)
 - Canvas Manipulation: Konva.js with react-konva
 - Form Handling: React Hook Form
 - Routing: React Router
 - Styling: Emotion (CSS-in-JS)
 - Local Storage: localforage
-- Testing: Jest, React Testing Library, Cypress
+- Testing: Jest, React Testing Library
 - Build Tool: Webpack (via Create React App)
-- Deployment: Netlify/Vercel
 
 ## Getting Started
 
@@ -80,7 +77,6 @@ flash-card-creator/
 │   ├── styles/        # Global styles and themes
 │   └── constants/     # Application constants
 ├── tests/             # Test files
-├── scripts/           # Utility scripts
 └── config/            # Configuration files
 ```
 
