@@ -42,6 +42,7 @@ Project Structure:
 |   |   +-- appConstants.md
 |   +-- context
 |   |   +-- AppStateContext.md
+|   |   +-- AppStateContext.tsx
 |   |   +-- ThemeContext.md
 |   +-- hooks
 |   |   +-- useCanvas.md
@@ -901,6 +902,87 @@ File: ./src/context/AppStateContext.md
 - [ ] Write unit tests
 ----------------------------------------
 
+File: ./src/context/AppStateContext.tsx
+----------------------------------------
+import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import { Card } from '../types/Card';
+import { Deck } from '../types/Deck';
+
+interface AppState {
+  cards: Card[];
+  decks: Deck[];
+}
+
+type Action =
+  | { type: 'ADD_CARD'; payload: Card }
+  | { type: 'UPDATE_CARD'; payload: Card }
+  | { type: 'DELETE_CARD'; payload: string }
+  | { type: 'ADD_DECK'; payload: Deck }
+  | { type: 'UPDATE_DECK'; payload: Deck }
+  | { type: 'DELETE_DECK'; payload: string };
+
+const initialState: AppState = {
+  cards: [],
+  decks: [],
+};
+
+const AppStateContext = createContext<{
+  state: AppState;
+  dispatch: React.Dispatch<Action>;
+} | undefined>(undefined);
+
+function appStateReducer(state: AppState, action: Action): AppState {
+  switch (action.type) {
+    case 'ADD_CARD':
+      return { ...state, cards: [...state.cards, action.payload] };
+    case 'UPDATE_CARD':
+      return {
+        ...state,
+        cards: state.cards.map((card) =>
+          card.id === action.payload.id ? action.payload : card
+        ),
+      };
+    case 'DELETE_CARD':
+      return {
+        ...state,
+        cards: state.cards.filter((card) => card.id !== action.payload),
+      };
+    case 'ADD_DECK':
+      return { ...state, decks: [...state.decks, action.payload] };
+    case 'UPDATE_DECK':
+      return {
+        ...state,
+        decks: state.decks.map((deck) =>
+          deck.id === action.payload.id ? action.payload : deck
+        ),
+      };
+    case 'DELETE_DECK':
+      return {
+        ...state,
+        decks: state.decks.filter((deck) => deck.id !== action.payload),
+      };
+    default:
+      return state;
+  }
+}
+
+export function AppStateProvider({ children }: { children: ReactNode }) {
+  const [state, dispatch] = useReducer(appStateReducer, initialState);
+  return (
+    <AppStateContext.Provider value={{ state, dispatch }}>
+      {children}
+    </AppStateContext.Provider>
+  );
+}
+
+export function useAppState() {
+  const context = useContext(AppStateContext);
+  if (context === undefined) {
+    throw new Error('useAppState must be used within an AppStateProvider');
+  }
+  return context;
+}----------------------------------------
+
 File: ./src/constants/appConstants.md
 ----------------------------------------
 # appConstants
@@ -1261,7 +1343,11 @@ import { useNavigate } from 'react-router-dom';
 import { Card } from '../../types/Card';
 import { saveCards, getCards } from '../../services/storage';
 
-const CardEditor: React.FC = () => {
+interface CardEditorProps {
+  onSave?: (card: Card) => void;
+}
+
+const CardEditor: React.FC<CardEditorProps> = ({ onSave }) => {
   const [sideAContent, setSideAContent] = useState('');
   const [sideBContent, setSideBContent] = useState('');
   const navigate = useNavigate();
@@ -1294,9 +1380,13 @@ const CardEditor: React.FC = () => {
       }
     };
 
-    const existingCards = getCards();
+    const existingCards = getCards() || [];
     saveCards([...existingCards, newCard]);
-    navigate('/');
+    if (onSave) {
+      onSave(newCard);
+    } else if (navigate) {
+      navigate('/');
+    }
   };
 
   return (
@@ -1329,24 +1419,44 @@ File: ./src/components/cards/__tests__/CardEditor.test.tsx
 ----------------------------------------
 import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import CardEditor from '../CardEditor';
+import * as storage from '../../../services/storage';
+import { BrowserRouter } from 'react-router-dom';
+
+// Mock react-router-dom
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => jest.fn(),
+}));
+
+// Mock storage
+jest.mock('../../../services/storage', () => ({
+  getCards: jest.fn(() => []),
+  saveCards: jest.fn(),
+}));
+
+const renderWithRouter = (ui: React.ReactElement) => {
+  return render(<BrowserRouter>{ui}</BrowserRouter>);
+};
 
 describe('CardEditor', () => {
   it('renders input fields for both sides of the card', () => {
-    render(<CardEditor cardId={null} onSave={() => {}} />);
+    renderWithRouter(<CardEditor />);
     expect(screen.getByPlaceholderText('Enter content for Side A')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Enter content for Side B')).toBeInTheDocument();
   });
 
   it('calls onSave with the correct card data when save button is clicked', () => {
     const mockSave = jest.fn();
-    render(<CardEditor cardId={null} onSave={mockSave} />);
+    renderWithRouter(<CardEditor onSave={mockSave} />);
     
     fireEvent.change(screen.getByPlaceholderText('Enter content for Side A'), { target: { value: 'Side A Content' } });
     fireEvent.change(screen.getByPlaceholderText('Enter content for Side B'), { target: { value: 'Side B Content' } });
     
     fireEvent.click(screen.getByText('Save Card'));
     
+    expect(storage.saveCards).toHaveBeenCalled();
     expect(mockSave).toHaveBeenCalledWith(expect.objectContaining({
       sideA: expect.objectContaining({
         elements: [expect.objectContaining({ content: 'Side A Content' })]
@@ -1356,8 +1466,7 @@ describe('CardEditor', () => {
       })
     }));
   });
-});
-----------------------------------------
+});----------------------------------------
 
 File: ./src/components/cards/CardViewer.md
 ----------------------------------------
@@ -1694,6 +1803,7 @@ File: ./src/__tests__/App.test.tsx
 ----------------------------------------
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { BrowserRouter as Router } from 'react-router-dom';
 import App from '../App';
 
@@ -1705,8 +1815,7 @@ test('renders App component', () => {
   );
   const homeElement = screen.getByText(/Home/i);
   expect(homeElement).toBeInTheDocument();
-});
-----------------------------------------
+});----------------------------------------
 
 File: ./src/index.md
 ----------------------------------------
@@ -1854,7 +1963,8 @@ const Home: React.FC = () => {
   const [cards, setCards] = useState<Card[]>([]);
 
   useEffect(() => {
-    setCards(getCards());
+    const fetchedCards = getCards();
+    setCards(fetchedCards || []);
   }, []);
 
   return (
@@ -1863,11 +1973,11 @@ const Home: React.FC = () => {
       <Link to="/editor">Create New Card</Link>
       <h2>Existing Cards:</h2>
       <ul>
-        {cards.map((card) => (
+        {cards?.map((card) => (
           <li key={card.id}>
             {card.sideA.elements[0]?.content} - {card.sideB.elements[0]?.content}
           </li>
-        ))}
+        )) || <li>No cards available</li>}
       </ul>
     </div>
   );
@@ -1939,14 +2049,16 @@ File: ./src/pages/__tests__/Home.test.tsx
 ----------------------------------------
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { BrowserRouter as Router } from 'react-router-dom';
-import Home from '../pages/Home';
-import * as storage from '../services/storage';
+import Home from '../Home';
+import * as storage from '../../services/storage';
 
-jest.mock('../services/storage');
+jest.mock('../../services/storage');
 
 describe('Home component', () => {
   it('renders the title', () => {
+    (storage.getCards as jest.Mock).mockReturnValue([]);
     render(<Router><Home /></Router>);
     expect(screen.getByText('Flash Card Creator')).toBeInTheDocument();
   });
@@ -2108,4 +2220,4 @@ export const getDecks = (): Deck[] => {
 ----------------------------------------
 
 Summary:
-Total lines of user-generated content: 1771
+Total lines of user-generated content: 1878

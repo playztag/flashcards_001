@@ -3,16 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { Card } from '../../types/Card';
 import { saveCards, getCards } from '../../services/storage';
 
-interface CardEditorProps {
-  onSave?: (card: Card) => void;
-}
-
-const CardEditor: React.FC<CardEditorProps> = ({ onSave }) => {
+const CardEditor: React.FC = () => {
   const [sideAContent, setSideAContent] = useState('');
   const [sideBContent, setSideBContent] = useState('');
   const navigate = useNavigate();
 
   const handleSave = () => {
+    if (!sideAContent || !sideBContent) {
+      alert('Both sides of the card must have content');
+      return;
+    }
+
     const newCard: Card = {
       id: Date.now().toString(),
       deckId: '',
@@ -40,13 +41,9 @@ const CardEditor: React.FC<CardEditorProps> = ({ onSave }) => {
       }
     };
 
-    const existingCards = getCards() || [];
+    const existingCards = getCards();
     saveCards([...existingCards, newCard]);
-    if (onSave) {
-      onSave(newCard);
-    } else if (navigate) {
-      navigate('/');
-    }
+    navigate('/');
   };
 
   return (
