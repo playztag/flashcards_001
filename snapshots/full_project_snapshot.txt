@@ -3,6 +3,7 @@ Project Structure:
 +-- README.md
 +-- config
 |   +-- webpack.config.md
++-- package-lock.json
 +-- package.json
 +-- public
 |   +-- index.html
@@ -29,6 +30,9 @@ Project Structure:
 |       +-- remove_card_from_deck.feature
 +-- src
 |   +-- App.md
+|   +-- App.tsx
+|   +-- __tests__
+|   |   +-- App.test.tsx
 |   +-- components
 |   |   +-- cards
 |   |   +-- common
@@ -43,16 +47,22 @@ Project Structure:
 |   |   +-- useCanvas.md
 |   |   +-- useDeck.md
 |   +-- index.md
+|   +-- index.tsx
 |   +-- pages
 |   |   +-- DeckManagement.md
+|   |   +-- DeckManagement.tsx
 |   |   +-- Editor.md
+|   |   +-- Editor.tsx
 |   |   +-- Home.md
+|   |   +-- Home.tsx
+|   +-- react-app-env.d.ts
 |   +-- services
 |   |   +-- api.md
 |   |   +-- storage.md
 |   |   +-- storage.ts
 |   +-- styles
 |   |   +-- globalStyles.md
+|   |   +-- globalStyles.ts
 |   |   +-- theme.md
 |   +-- types
 |   |   +-- Card.md
@@ -632,6 +642,46 @@ File: ./public/index.html
 ----------------------------------------
 ----------------------------------------
 
+File: ./src/index.tsx
+----------------------------------------
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
+import App from './App';
+
+ReactDOM.render(
+  <React.StrictMode>
+    <Router>
+      <App />
+    </Router>
+  </React.StrictMode>,
+  document.getElementById('root')
+);
+----------------------------------------
+
+File: ./src/App.tsx
+----------------------------------------
+import React from 'react';
+import { Route, Switch } from 'react-router-dom';
+import Home from './pages/Home';
+import Editor from './pages/Editor';
+import DeckManagement from './pages/DeckManagement';
+
+const App: React.FC = () => {
+  return (
+    <div className="App">
+      <Switch>
+        <Route exact path="/" component={Home} />
+        <Route path="/editor" component={Editor} />
+        <Route path="/decks" component={DeckManagement} />
+      </Switch>
+    </div>
+  );
+};
+
+export default App;
+----------------------------------------
+
 File: ./src/App.md
 ----------------------------------------
 # App
@@ -995,6 +1045,26 @@ File: ./src/styles/globalStyles.md
 - [ ] Write unit tests
 ----------------------------------------
 
+File: ./src/styles/globalStyles.ts
+----------------------------------------
+import { css } from '@emotion/react';
+
+export const globalStyles = css`
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  .App {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+`;
+----------------------------------------
+
 File: ./src/styles/theme.md
 ----------------------------------------
 # theme
@@ -1328,7 +1398,7 @@ const CardViewer: React.FC<CardViewerProps> = ({ cardId, onFlip }) => {
 
 File: ./src/components/cards/CardViewer.tsx
 ----------------------------------------
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '../../types/Card';
 
 interface CardViewerProps {
@@ -1336,10 +1406,30 @@ interface CardViewerProps {
 }
 
 const CardViewer: React.FC<CardViewerProps> = ({ card }) => {
+  const [showFront, setShowFront] = useState(true);
+
+  const flipCard = () => {
+    setShowFront(!showFront);
+  };
+
   return (
-    <div>
+    <div className="card-viewer" onClick={flipCard}>
       <h2>Card Viewer</h2>
-      {/* TODO: Implement card viewing functionality */}
+      {showFront ? (
+        <div>
+          <h3>Front</h3>
+          {card.sideA.elements.map((element) => (
+            <div key={element.id}>{element.content}</div>
+          ))}
+        </div>
+      ) : (
+        <div>
+          <h3>Back</h3>
+          {card.sideB.elements.map((element) => (
+            <div key={element.id}>{element.content}</div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -1446,13 +1536,35 @@ const DeckManager: React.FC = () => {
 
 File: ./src/components/decks/DeckManager.tsx
 ----------------------------------------
-import React from 'react';
+import React, { useState } from 'react';
+import { Deck } from '../../types/Deck';
 
 const DeckManager: React.FC = () => {
+  const [decks, setDecks] = useState<Deck[]>([]);
+
+  const createDeck = (name: string, description: string) => {
+    const newDeck: Deck = {
+      id: Date.now().toString(),
+      name,
+      description,
+      cards: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    setDecks([...decks, newDeck]);
+  };
+
   return (
     <div>
       <h2>Deck Manager</h2>
-      {/* TODO: Implement deck management functionality */}
+      <button onClick={() => createDeck('New Deck', 'A new deck')}>
+        Create New Deck
+      </button>
+      <ul>
+        {decks.map((deck) => (
+          <li key={deck.id}>{deck.name}</li>
+        ))}
+      </ul>
     </div>
   );
 };
@@ -1570,6 +1682,24 @@ File: ./src/components/common/ColorPicker.md
 - [ ] Write unit tests
 ----------------------------------------
 
+File: ./src/__tests__/App.test.tsx
+----------------------------------------
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import { BrowserRouter as Router } from 'react-router-dom';
+import App from '../App';
+
+test('renders App component', () => {
+  render(
+    <Router>
+      <App />
+    </Router>
+  );
+  const homeElement = screen.getByText(/Home/i);
+  expect(homeElement).toBeInTheDocument();
+});
+----------------------------------------
+
 File: ./src/index.md
 ----------------------------------------
 # index
@@ -1683,6 +1813,59 @@ const useDeck = () => {
 - [ ] Add card management functions
 - [ ] Integrate with storage service
 - [ ] Write unit tests----------------------------------------
+
+File: ./src/react-app-env.d.ts
+----------------------------------------
+/// <reference types="react-scripts" />
+----------------------------------------
+
+File: ./src/pages/DeckManagement.tsx
+----------------------------------------
+import React from 'react';
+
+const DeckManagement: React.FC = () => {
+  return (
+    <div>
+      <h1>DeckManagement</h1>
+      {/* TODO: Implement DeckManagement page */}
+    </div>
+  );
+};
+
+export default DeckManagement;
+----------------------------------------
+
+File: ./src/pages/Home.tsx
+----------------------------------------
+import React from 'react';
+
+const Home: React.FC = () => {
+  return (
+    <div>
+      <h1>Home</h1>
+      {/* TODO: Implement Home page */}
+    </div>
+  );
+};
+
+export default Home;
+----------------------------------------
+
+File: ./src/pages/Editor.tsx
+----------------------------------------
+import React from 'react';
+
+const Editor: React.FC = () => {
+  return (
+    <div>
+      <h1>Editor</h1>
+      {/* TODO: Implement Editor page */}
+    </div>
+  );
+};
+
+export default Editor;
+----------------------------------------
 
 File: ./src/pages/Editor.md
 ----------------------------------------
@@ -1869,4 +2052,4 @@ export const getDecks = (): Deck[] => {
 ----------------------------------------
 
 Summary:
-Total lines of user-generated content: 1579
+Total lines of user-generated content: 1720
