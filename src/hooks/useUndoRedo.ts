@@ -7,28 +7,28 @@ const useUndoRedo = <T>(initialState: T) => {
 
   const set: React.Dispatch<React.SetStateAction<T>> = useCallback(
     (newState: React.SetStateAction<T>) => {
-      setHistory([...history, state]);
+      setHistory((prevHistory) => [...prevHistory, state]);
       setState(newState);
       setRedoStack([]);
     },
-    [state, history]
+    [state]
   );
 
   const undo = useCallback(() => {
     if (history.length === 0) return;
-    const previousState = history.pop()!;
-    setRedoStack([state, ...redoStack]);
+    const previousState = history[history.length - 1];
+    setRedoStack((prevRedoStack) => [state, ...prevRedoStack]);
+    setHistory((prevHistory) => prevHistory.slice(0, -1));
     setState(previousState);
-    setHistory(history);
-  }, [state, history, redoStack]);
+  }, [state, history]);
 
   const redo = useCallback(() => {
     if (redoStack.length === 0) return;
-    const nextState = redoStack.shift()!;
-    setHistory([...history, state]);
+    const nextState = redoStack[0];
+    setHistory((prevHistory) => [...prevHistory, state]);
+    setRedoStack((prevRedoStack) => prevRedoStack.slice(1));
     setState(nextState);
-    setRedoStack(redoStack);
-  }, [state, history, redoStack]);
+  }, [state, redoStack]);
 
   return { state, set, undo, redo };
 };

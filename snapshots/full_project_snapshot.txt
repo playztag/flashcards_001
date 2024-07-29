@@ -36,6 +36,7 @@ Project Structure:
 |   +-- App.tsx
 |   +-- __tests__
 |   |   +-- App.test.tsx
+|   |   +-- useUndoRedo.test.ts
 |   +-- components
 |   |   +-- cards
 |   |   +-- common
@@ -68,6 +69,7 @@ Project Structure:
 |   |   +-- api.md
 |   |   +-- storage.md
 |   |   +-- storage.ts
+|   +-- setupTest.js
 |   +-- styles
 |   |   +-- globalStyles.md
 |   |   +-- globalStyles.ts
@@ -1892,74 +1894,99 @@ const styles = {
 export default CardEditor;
 ----------------------------------------
 
-File: ./src/components/cards/__tests__/CardEditor.test.tsx
+File: ./src/components/cards/__tests__/SideEditor.test.tsx
 ----------------------------------------
 import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react';
+import { render, fireEvent, screen, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { BrowserRouter as Router } from 'react-router-dom';
-import CardEditor from '../CardEditor';
-import * as storage from '../../../services/storage';
+import SideEditor from '../SideEditor';
+import { CardElement } from '../../../types/Card';
 
-// Mock the storage module
-jest.mock('../../../services/storage', () => ({
-  getCards: jest.fn(() => []),
-  saveCards: jest.fn(),
-}));
-
-// Utility function to render with Router
-const renderWithRouter = (ui: React.ReactElement) => {
-  return render(<Router>{ui}</Router>);
-};
-
-describe('CardEditor', () => {
-  it('renders CardEditor and saves a card', () => {
-    renderWithRouter(<CardEditor />);
-    const addTextButtonA = screen.getAllByText('Add Text')[0];
-    const addTextButtonB = screen.getAllByText('Add Text')[1];
-
-    // Add text to Side A
-    fireEvent.click(addTextButtonA);
-    const textareaA = screen.getAllByPlaceholderText('Enter text')[0];
-    fireEvent.change(textareaA, { target: { value: 'Side A Content' } });
-
-    // Add text to Side B
-    fireEvent.click(addTextButtonB);
-    const textareaB = screen.getAllByPlaceholderText('Enter text')[1];
-    fireEvent.change(textareaB, { target: { value: 'Side B Content' } });
-
-    // Save the card
-    const saveButton = screen.getByText('Save Card');
-    fireEvent.click(saveButton);
-
-    // Assert saveCards was called
-    expect(storage.saveCards).toHaveBeenCalled();
-    expect(storage.saveCards).toHaveBeenCalledWith(
-      expect.arrayContaining([
-        expect.objectContaining({
-          sideA: expect.objectContaining({
-            elements: expect.arrayContaining([
-              expect.objectContaining({ content: 'Side A Content' })
-            ])
-          }),
-          sideB: expect.objectContaining({
-            elements: expect.arrayContaining([
-              expect.objectContaining({ content: 'Side B Content' })
-            ])
-          })
-        })
-      ])
+describe('SideEditor Component', () => {
+  const renderSideEditor = (content: CardElement[], setContent: any, undo: any, redo: any) =>
+    render(
+      <SideEditor
+        side="A"
+        content={content}
+        setContent={setContent}
+        undo={undo}
+        redo={redo}
+      />
     );
-  });
 
-  it('displays error when trying to save an empty card', () => {
-    renderWithRouter(<CardEditor />);
-    const saveButton = screen.getByText('Save Card');
-    fireEvent.click(saveButton);
-    expect(window.alert).toHaveBeenCalledWith('Both sides of the card must have content');
+  it('should add, undo, and redo elements correctly', () => {
+    let content: CardElement[] = [];
+    const setContent = jest.fn((newContent) => (content = newContent));
+    const undo = jest.fn();
+    const redo = jest.fn();
+
+    renderSideEditor(content, setContent, undo, redo);
+
+    act(() => {
+      // Add text element
+      fireEvent.click(screen.getByText('Add Text'));
+    });
+    expect(setContent).toHaveBeenCalled();
+    expect(content).toHaveLength(1);
+
+    // Undo action
+    act(() => {
+      fireEvent.click(screen.getByText('Undo'));
+    });
+    expect(undo).toHaveBeenCalled();
+
+    // Redo action
+    act(() => {
+      fireEvent.click(screen.getByText('Redo'));
+    });
+    expect(redo).toHaveBeenCalled();
   });
 });
 ----------------------------------------
+
+File: ./src/components/cards/__tests__/CardEditor.test.tsx
+----------------------------------------
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
+import CardEditor from '../CardEditor';
+
+describe('CardEditor Component', () => {
+  const renderWithRouter = (ui: React.ReactElement) => {
+    return render(<Router>{ui}</Router>);
+  };
+
+  it('should add elements and handle undo/redo correctly', () => {
+    renderWithRouter(<CardEditor />);
+
+    // Assuming there are buttons to add text content and undo/redo
+    const addTextButton = screen.getByText('Add Text');
+    fireEvent.click(addTextButton);
+
+    // Simulate setting text content
+    const textArea = screen.getByPlaceholderText('Enter text');
+    fireEvent.change(textArea, { target: { value: 'Side A Content' } });
+
+    const saveButton = screen.getByText('Save');
+    fireEvent.click(saveButton);
+
+    // Verify the content is added
+    expect(screen.getByDisplayValue('Side A Content')).toBeInTheDocument();
+
+    const undoButton = screen.getByText('Undo');
+    fireEvent.click(undoButton);
+
+    // Verify the content is removed
+    expect(screen.queryByDisplayValue('Side A Content')).not.toBeInTheDocument();
+
+    const redoButton = screen.getByText('Redo');
+    fireEvent.click(redoButton);
+
+    // Verify the content is added back
+    expect(screen.getByDisplayValue('Side A Content')).toBeInTheDocument();
+  });
+});----------------------------------------
 
 File: ./src/components/cards/CardViewer.md
 ----------------------------------------
@@ -2299,8 +2326,49 @@ test('renders App component', () => {
       <App />
     </Router>
   );
-  const homeElement = screen.getByText(/Home/i);
-  expect(homeElement).toBeInTheDocument();
+  const headerElement = screen.getByText(/Flash Card Creator/i);
+  expect(headerElement).toBeInTheDocument();
+});----------------------------------------
+
+File: ./src/__tests__/useUndoRedo.test.ts
+----------------------------------------
+import { renderHook, act } from '@testing-library/react';
+import useUndoRedo from '../hooks/useUndoRedo';
+
+describe('useUndoRedo Hook', () => {
+  it('should initialize with the given state', () => {
+    const { result } = renderHook(() => useUndoRedo(0));
+    expect(result.current.state).toBe(0);
+  });
+
+  it('should update the state and add to history', () => {
+    const { result } = renderHook(() => useUndoRedo(0));
+    act(() => {
+      result.current.set((prev: number) => prev + 1);
+    });
+    expect(result.current.state).toBe(1);
+  });
+
+  it('should undo state changes', () => {
+    const { result } = renderHook(() => useUndoRedo(0));
+    act(() => {
+      result.current.set((prev: number) => prev + 1);
+      result.current.set((prev: number) => prev + 1);
+      result.current.undo();
+    });
+    expect(result.current.state).toBe(1);
+  });
+
+  it('should redo state changes', () => {
+    const { result } = renderHook(() => useUndoRedo(0));
+    act(() => {
+      result.current.set((prev: number) => prev + 1);
+      result.current.set((prev: number) => prev + 1);
+      result.current.undo();
+      result.current.redo();
+    });
+    expect(result.current.state).toBe(2);
+  });
 });----------------------------------------
 
 File: ./src/index.md
@@ -2450,33 +2518,34 @@ const useUndoRedo = <T>(initialState: T) => {
 
   const set: React.Dispatch<React.SetStateAction<T>> = useCallback(
     (newState: React.SetStateAction<T>) => {
-      setHistory([...history, state]);
+      setHistory((prevHistory) => [...prevHistory, state]);
       setState(newState);
       setRedoStack([]);
     },
-    [state, history]
+    [state]
   );
 
   const undo = useCallback(() => {
     if (history.length === 0) return;
-    const previousState = history.pop()!;
-    setRedoStack([state, ...redoStack]);
+    const previousState = history[history.length - 1];
+    setRedoStack((prevRedoStack) => [state, ...prevRedoStack]);
+    setHistory((prevHistory) => prevHistory.slice(0, -1));
     setState(previousState);
-    setHistory(history);
-  }, [state, history, redoStack]);
+  }, [state, history]);
 
   const redo = useCallback(() => {
     if (redoStack.length === 0) return;
-    const nextState = redoStack.shift()!;
-    setHistory([...history, state]);
+    const nextState = redoStack[0];
+    setHistory((prevHistory) => [...prevHistory, state]);
+    setRedoStack((prevRedoStack) => prevRedoStack.slice(1));
     setState(nextState);
-    setRedoStack(redoStack);
-  }, [state, history, redoStack]);
+  }, [state, redoStack]);
 
   return { state, set, undo, redo };
 };
 
-export default useUndoRedo;----------------------------------------
+export default useUndoRedo;
+----------------------------------------
 
 File: ./src/hooks/useDeck.md
 ----------------------------------------
@@ -2529,6 +2598,10 @@ File: ./src/react-app-env.d.ts
 ----------------------------------------
 /// <reference types="react-scripts" />
 ----------------------------------------
+
+File: ./src/setupTest.js
+----------------------------------------
+import '@testing-library/jest-dom';----------------------------------------
 
 File: ./src/pages/DeckManagement.tsx
 ----------------------------------------
@@ -2850,4 +2923,4 @@ export const getDecks = (): Deck[] => {
 ----------------------------------------
 
 Summary:
-Total lines of user-generated content: 2457
+Total lines of user-generated content: 2516

@@ -10,6 +10,6 @@ test('renders App component', () => {
       <App />
     </Router>
   );
-  const homeElement = screen.getByText(/Home/i);
-  expect(homeElement).toBeInTheDocument();
+  const headerElement = screen.getByText(/Flash Card Creator/i);
+  expect(headerElement).toBeInTheDocument();
 });
