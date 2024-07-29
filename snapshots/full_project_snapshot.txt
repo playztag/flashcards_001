@@ -55,6 +55,7 @@ Project Structure:
 |   |   +-- Editor.tsx
 |   |   +-- Home.md
 |   |   +-- Home.tsx
+|   |   +-- __tests__
 |   +-- react-app-env.d.ts
 |   +-- services
 |   |   +-- api.md
@@ -662,7 +663,7 @@ ReactDOM.render(
 File: ./src/App.tsx
 ----------------------------------------
 import React from 'react';
-import { Route, Switch } from 'react-router-dom';
+import { Route, Routes, Link } from 'react-router-dom';
 import Home from './pages/Home';
 import Editor from './pages/Editor';
 import DeckManagement from './pages/DeckManagement';
@@ -670,17 +671,23 @@ import DeckManagement from './pages/DeckManagement';
 const App: React.FC = () => {
   return (
     <div className="App">
-      <Switch>
-        <Route exact path="/" component={Home} />
-        <Route path="/editor" component={Editor} />
-        <Route path="/decks" component={DeckManagement} />
-      </Switch>
+      <nav>
+        <ul>
+          <li><Link to="/">Home</Link></li>
+          <li><Link to="/editor">Card Editor</Link></li>
+          <li><Link to="/decks">Deck Management</Link></li>
+        </ul>
+      </nav>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/editor" element={<Editor />} />
+        <Route path="/decks" element={<DeckManagement />} />
+      </Routes>
     </div>
   );
 };
 
-export default App;
-----------------------------------------
+export default App;----------------------------------------
 
 File: ./src/App.md
 ----------------------------------------
@@ -1250,21 +1257,19 @@ const CardEditor: React.FC<CardEditorProps> = ({ cardId, onSave }) => {
 File: ./src/components/cards/CardEditor.tsx
 ----------------------------------------
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../../types/Card';
+import { saveCards, getCards } from '../../services/storage';
 
-interface CardEditorProps {
-  cardId: string | null;
-  onSave: (card: Card) => void;
-}
-
-const CardEditor: React.FC<CardEditorProps> = ({ cardId, onSave }) => {
+const CardEditor: React.FC = () => {
   const [sideAContent, setSideAContent] = useState('');
   const [sideBContent, setSideBContent] = useState('');
+  const navigate = useNavigate();
 
   const handleSave = () => {
     const newCard: Card = {
-      id: cardId || Date.now().toString(),
-      deckId: '', // This should be set when adding to a deck
+      id: Date.now().toString(),
+      deckId: '',
       sideA: {
         elements: [
           {
@@ -1288,11 +1293,15 @@ const CardEditor: React.FC<CardEditorProps> = ({ cardId, onSave }) => {
         ]
       }
     };
-    onSave(newCard);
+
+    const existingCards = getCards();
+    saveCards([...existingCards, newCard]);
+    navigate('/');
   };
 
   return (
     <div className="card-editor">
+      <h2>Create New Card</h2>
       <div>
         <h3>Side A</h3>
         <textarea
@@ -1314,8 +1323,7 @@ const CardEditor: React.FC<CardEditorProps> = ({ cardId, onSave }) => {
   );
 };
 
-export default CardEditor;
-----------------------------------------
+export default CardEditor;----------------------------------------
 
 File: ./src/components/cards/__tests__/CardEditor.test.tsx
 ----------------------------------------
@@ -1837,19 +1845,35 @@ export default DeckManagement;
 
 File: ./src/pages/Home.tsx
 ----------------------------------------
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { getCards } from '../services/storage';
+import { Card } from '../types/Card';
 
 const Home: React.FC = () => {
+  const [cards, setCards] = useState<Card[]>([]);
+
+  useEffect(() => {
+    setCards(getCards());
+  }, []);
+
   return (
     <div>
-      <h1>Home</h1>
-      {/* TODO: Implement Home page */}
+      <h1>Flash Card Creator</h1>
+      <Link to="/editor">Create New Card</Link>
+      <h2>Existing Cards:</h2>
+      <ul>
+        {cards.map((card) => (
+          <li key={card.id}>
+            {card.sideA.elements[0]?.content} - {card.sideB.elements[0]?.content}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
 
-export default Home;
-----------------------------------------
+export default Home;----------------------------------------
 
 File: ./src/pages/Editor.tsx
 ----------------------------------------
@@ -1910,6 +1934,38 @@ File: ./src/pages/Home.md
 - [ ] Add necessary logic
 - [ ] Write unit tests
 ----------------------------------------
+
+File: ./src/pages/__tests__/Home.test.tsx
+----------------------------------------
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import { BrowserRouter as Router } from 'react-router-dom';
+import Home from '../pages/Home';
+import * as storage from '../services/storage';
+
+jest.mock('../services/storage');
+
+describe('Home component', () => {
+  it('renders the title', () => {
+    render(<Router><Home /></Router>);
+    expect(screen.getByText('Flash Card Creator')).toBeInTheDocument();
+  });
+
+  it('displays existing cards', () => {
+    const mockCards = [
+      {
+        id: '1',
+        deckId: '',
+        sideA: { elements: [{ id: '1', type: 'text', content: 'Question 1', style: {}, position: { x: 0, y: 0, width: 100, height: 100 } }] },
+        sideB: { elements: [{ id: '2', type: 'text', content: 'Answer 1', style: {}, position: { x: 0, y: 0, width: 100, height: 100 } }] }
+      }
+    ];
+    (storage.getCards as jest.Mock).mockReturnValue(mockCards);
+
+    render(<Router><Home /></Router>);
+    expect(screen.getByText('Question 1 - Answer 1')).toBeInTheDocument();
+  });
+});----------------------------------------
 
 File: ./src/pages/DeckManagement.md
 ----------------------------------------
@@ -2052,4 +2108,4 @@ export const getDecks = (): Deck[] => {
 ----------------------------------------
 
 Summary:
-Total lines of user-generated content: 1720
+Total lines of user-generated content: 1771

@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../../types/Card';
+import { saveCards, getCards } from '../../services/storage';
 
 interface CardEditorProps {
-  cardId: string | null;
-  onSave: (card: Card) => void;
+  onSave?: (card: Card) => void;
 }
 
-const CardEditor: React.FC<CardEditorProps> = ({ cardId, onSave }) => {
+const CardEditor: React.FC<CardEditorProps> = ({ onSave }) => {
   const [sideAContent, setSideAContent] = useState('');
   const [sideBContent, setSideBContent] = useState('');
+  const navigate = useNavigate();
 
   const handleSave = () => {
     const newCard: Card = {
-      id: cardId || Date.now().toString(),
-      deckId: '', // This should be set when adding to a deck
+      id: Date.now().toString(),
+      deckId: '',
       sideA: {
         elements: [
           {
@@ -37,11 +39,19 @@ const CardEditor: React.FC<CardEditorProps> = ({ cardId, onSave }) => {
         ]
       }
     };
-    onSave(newCard);
+
+    const existingCards = getCards() || [];
+    saveCards([...existingCards, newCard]);
+    if (onSave) {
+      onSave(newCard);
+    } else if (navigate) {
+      navigate('/');
+    }
   };
 
   return (
     <div className="card-editor">
+      <h2>Create New Card</h2>
       <div>
         <h3>Side A</h3>
         <textarea
