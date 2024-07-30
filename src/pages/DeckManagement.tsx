@@ -1,17 +1,11 @@
-import React, { useEffect } from 'react';
+import React from 'react';
+import DeckManager from '../components/decks/DeckManager';
 
 const DeckManagement: React.FC = () => {
-  useEffect(() => {
-    console.log('DeckManagement: Component mounted');
-  }, []);
-
-  console.log('DeckManagement: Rendering');
-
   return (
     <div>
-      <h1>DeckManagement</h1>
-      <p style={{ color: 'red' }}>Debug: DeckManagement component rendered</p>
-      {/* TODO: Implement DeckManagement page */}
+      <h1>Deck Management</h1>
+      <DeckManager />
     </div>
   );
 };

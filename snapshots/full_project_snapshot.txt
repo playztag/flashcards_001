@@ -1709,41 +1709,40 @@ File: ./src/components/cards/CardEditor.md
 # CardEditor
 
 ## Purpose
-The CardEditor component is the core interface for creating and editing flash cards. It provides a canvas-based environment where users can add shapes, text, and manipulate elements to design both sides of a flash card.
+The CardEditor component is the core interface for creating and editing flash cards. It provides a canvas-based environment where users can add shapes, text, and manipulate elements to design both sides of a flash card simultaneously.
 
 ## Dependencies
 - react
 - react-konva
 - @emotion/styled
-- ../../hooks/useCanvas
-- ../../context/AppStateContext
+- react-colorful
 - ../../types/Card
 
 ## Props
-- cardId: string | null (null for new card creation)
+- card?: Card (optional, for editing an existing card)
 - onSave: (card: Card) => void
 
 ## Main Functionality
-1. Provide a canvas for drawing and manipulating shapes and text
-2. Display Side A and Side B of the card side by side
+1. Display Side A and Side B of the card side by side for simultaneous editing
+2. Provide a canvas for drawing and manipulating shapes and text on each side
 3. Offer tools for adding rectangles, circles, and text elements
 4. Enable selection, movement, resizing, and deletion of elements
 5. Provide color selection for shapes and text
-6. Implement undo/redo functionality for edit actions
-7. Save card data to local storage and trigger onSave prop
+6. Allow focusing on one side at a time for detailed editing
+7. Save card data for both sides
 
 ## TODO
 - [x] Implement basic structure
-- [x] Add text input for both sides
-- [ ] Implement canvas setup with react-konva
-- [ ] Create toolbar with shape and text tools
-- [ ] Implement shape and text addition functionality
-- [ ] Add selection and manipulation capabilities
-- [ ] Create save functionality
+- [x] Add simultaneous display of Side A and Side B
+- [x] Implement canvas setup with react-konva for both sides
+- [x] Create toolbar with shape and text tools
+- [x] Implement shape and text addition functionality
+- [x] Add selection and manipulation capabilities
+- [x] Create save functionality for both sides
 - [ ] Add undo/redo feature
-- [ ] Implement color picking for elements
+- [x] Implement color picking for elements
 - [ ] Write unit tests for core functions
-- [ ] Style component using Emotion----------------------------------------
+- [x] Style component using Emotion----------------------------------------
 
 File: ./src/components/cards/SideEditor.tsx
 ----------------------------------------
@@ -1827,20 +1826,21 @@ interface CardEditorProps {
 }
 
 const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
-  const [elements, setElements] = useState<CardElement[]>(card?.sideA.elements || []);
+  const [sideAElements, setSideAElements] = useState<CardElement[]>(card?.sideA.elements || []);
+  const [sideBElements, setSideBElements] = useState<CardElement[]>(card?.sideB.elements || []);
   const [selectedId, selectShape] = useState<string | null>(null);
   const [tool, setTool] = useState<'select' | 'rectangle' | 'circle' | 'text'>('select');
   const [color, setColor] = useState("#000000");
-  const [history, setHistory] = useState<CardElement[][]>([]);
-  const [historyStep, setHistoryStep] = useState(0);
-  const stageRef = useRef<Konva.Stage>(null);
-  const layerRef = useRef<Konva.Layer>(null);
+  const stageARef = useRef<Konva.Stage>(null);
+  const stageBRef = useRef<Konva.Stage>(null);
+  const layerARef = useRef<Konva.Layer>(null);
+  const layerBRef = useRef<Konva.Layer>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
 
   useEffect(() => {
     if (selectedId) {
-      const stage = stageRef.current;
-      const layer = layerRef.current;
+      const stage = selectedId.startsWith('A') ? stageARef.current : stageBRef.current;
+      const layer = selectedId.startsWith('A') ? layerARef.current : layerBRef.current;
       const transformer = transformerRef.current;
       
       if (stage && layer && transformer) {
@@ -1854,60 +1854,44 @@ const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
     }
   }, [selectedId]);
 
-  const addElement = (type: 'rectangle' | 'circle' | 'text') => {
+  const addElement = (side: 'A' | 'B', type: 'rectangle' | 'circle' | 'text') => {
     const newElement: CardElement = {
-      id: Date.now().toString(),
+      id: `${side}${Date.now()}`,
       type,
       content: type === 'text' ? 'New Text' : '',
       style: { backgroundColor: color, borderColor: color, borderWidth: 2, fontColor: color },
       position: { x: 50, y: 50, width: 100, height: 100 },
     };
-    const newElements = [...elements, newElement];
-    setElements(newElements);
-    addToHistory(newElements);
+    if (side === 'A') {
+      setSideAElements([...sideAElements, newElement]);
+    } else {
+      setSideBElements([...sideBElements, newElement]);
+    }
   };
 
-  const updateElement = (id: string, newProps: Partial<CardElement>) => {
-    const newElements = elements.map(el => 
-      el.id === id ? { ...el, ...newProps } : el
-    );
-    setElements(newElements);
-    addToHistory(newElements);
+  const updateElement = (side: 'A' | 'B', id: string, newProps: Partial<CardElement>) => {
+    const updateElements = (elements: CardElement[]) =>
+      elements.map(el => el.id === id ? { ...el, ...newProps } : el);
+    
+    if (side === 'A') {
+      setSideAElements(updateElements(sideAElements));
+    } else {
+      setSideBElements(updateElements(sideBElements));
+    }
   };
 
-  const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+  const handleStageClick = (side: 'A' | 'B', e: Konva.KonvaEventObject<MouseEvent>) => {
     const clickedOnEmpty = e.target === e.target.getStage();
     if (clickedOnEmpty) {
       selectShape(null);
       if (tool !== 'select') {
-        addElement(tool);
+        addElement(side, tool);
         setTool('select');
       }
     }
   };
 
-  const addToHistory = (newElements: CardElement[]) => {
-    const newHistory = history.slice(0, historyStep + 1);
-    newHistory.push(newElements);
-    setHistory(newHistory);
-    setHistoryStep(newHistory.length - 1);
-  };
-
-  const undo = () => {
-    if (historyStep > 0) {
-      setHistoryStep(historyStep - 1);
-      setElements(history[historyStep - 1]);
-    }
-  };
-
-  const redo = () => {
-    if (historyStep < history.length - 1) {
-      setHistoryStep(historyStep + 1);
-      setElements(history[historyStep + 1]);
-    }
-  };
-
-  const renderShape = (element: CardElement) => {
+  const renderShape = (side: 'A' | 'B', element: CardElement) => {
     const shapeProps = {
       id: element.id,
       x: element.position.x,
@@ -1920,7 +1904,7 @@ const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
       draggable: true,
       onClick: () => selectShape(element.id),
       onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => {
-        updateElement(element.id, {
+        updateElement(side, element.id, {
           position: {
             ...element.position,
             x: e.target.x(),
@@ -1930,7 +1914,7 @@ const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
       },
       onTransformEnd: (e: Konva.KonvaEventObject<Event>) => {
         const node = e.target;
-        updateElement(element.id, {
+        updateElement(side, element.id, {
           position: {
             ...element.position,
             x: node.x(),
@@ -1966,43 +1950,70 @@ const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
     if (card) {
       onSave({
         ...card,
-        sideA: { elements }
+        sideA: { elements: sideAElements },
+        sideB: { elements: sideBElements }
       });
     } else {
       onSave({
         id: Date.now().toString(),
         deckId: '',
-        sideA: { elements },
-        sideB: { elements: [] }
+        sideA: { elements: sideAElements },
+        sideB: { elements: sideBElements }
       });
     }
   };
 
   return (
     <EditorContainer>
-      <Toolbar>
-        <ToolButton onClick={() => setTool('select')} active={tool === 'select'}>Select</ToolButton>
-        <ToolButton onClick={() => setTool('rectangle')} active={tool === 'rectangle'}>Rectangle</ToolButton>
-        <ToolButton onClick={() => setTool('circle')} active={tool === 'circle'}>Circle</ToolButton>
-        <ToolButton onClick={() => setTool('text')} active={tool === 'text'}>Text</ToolButton>
-        <ToolButton onClick={undo} disabled={historyStep === 0}>Undo</ToolButton>
-        <ToolButton onClick={redo} disabled={historyStep === history.length - 1}>Redo</ToolButton>
-      </Toolbar>
-      <ColorPickerContainer>
-        <HexColorPicker color={color} onChange={setColor} />
-      </ColorPickerContainer>
-      <Stage
-        width={400}
-        height={600}
-        ref={stageRef}
-        onClick={handleStageClick}
-      >
-        <Layer ref={layerRef}>
-          {elements.map(renderShape)}
-          <Transformer ref={transformerRef} />
-        </Layer>
-      </Stage>
-      <SaveButton onClick={handleSave}>Save Card</SaveButton>
+      <h2>Edit Card</h2>
+      <EditArea>
+        <ToolbarContainer>
+          <Toolbar>
+            <ToolButton onClick={() => setTool('select')} active={tool === 'select'}>Select</ToolButton>
+            <ToolButton onClick={() => setTool('rectangle')} active={tool === 'rectangle'}>Rectangle</ToolButton>
+            <ToolButton onClick={() => setTool('circle')} active={tool === 'circle'}>Circle</ToolButton>
+            <ToolButton onClick={() => setTool('text')} active={tool === 'text'}>Text</ToolButton>
+          </Toolbar>
+          <ColorPickerContainer>
+            <HexColorPicker color={color} onChange={setColor} />
+          </ColorPickerContainer>
+        </ToolbarContainer>
+        <SidesContainer>
+          <SideContainer>
+            <h3>Side A</h3>
+            <StageContainer>
+              <Stage
+                width={320}
+                height={240}
+                ref={stageARef}
+                onClick={(e) => handleStageClick('A', e)}
+              >
+                <Layer ref={layerARef}>
+                  {sideAElements.map((element) => renderShape('A', element))}
+                  <Transformer ref={transformerRef} />
+                </Layer>
+              </Stage>
+            </StageContainer>
+          </SideContainer>
+          <SideContainer>
+            <h3>Side B</h3>
+            <StageContainer>
+              <Stage
+                width={320}
+                height={240}
+                ref={stageBRef}
+                onClick={(e) => handleStageClick('B', e)}
+              >
+                <Layer ref={layerBRef}>
+                  {sideBElements.map((element) => renderShape('B', element))}
+                  <Transformer ref={transformerRef} />
+                </Layer>
+              </Stage>
+            </StageContainer>
+          </SideContainer>
+        </SidesContainer>
+        <SaveButton onClick={handleSave}>Save Card</SaveButton>
+      </EditArea>
     </EditorContainer>
   );
 };
@@ -2012,45 +2023,81 @@ const EditorContainer = styled.div`
   flex-direction: column;
   align-items: center;
   padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+`;
+
+const EditArea = styled.div`
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  padding: 20px;
+  width: 100%;
+`;
+
+const ToolbarContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 `;
 
 const Toolbar = styled.div`
   display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
 `;
 
 const ToolButton = styled.button<{ active?: boolean }>`
-  margin: 0 5px;
-  padding: 5px 10px;
-  background-color: ${props => props.active ? '#4a90e2' : '#f0f0f0'};
-  color: ${props => props.active ? '#ffffff' : '#000000'};
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 10px 20px;
+  background-color: ${props => props.active ? '#4a90e2' : 'transparent'};
+  color: ${props => props.active ? '#ffffff' : '#333333'};
+  border: none;
   cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
 
   &:hover {
-    background-color: ${props => props.active ? '#3a7bd5' : '#e0e0e0'};
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+    background-color: ${props => props.active ? '#3a7bd5' : '#f0f0f0'};
   }
 `;
 
 const ColorPickerContainer = styled.div`
+  .react-colorful {
+    width: 120px;
+    height: 120px;
+  }
+`;
+
+const SidesContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
   margin-bottom: 20px;
 `;
 
+const SideContainer = styled.div`
+  width: 48%;
+
+  h3 {
+    margin-bottom: 10px;
+  }
+`;
+
+const StageContainer = styled.div`
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  overflow: hidden;
+`;
+
 const SaveButton = styled.button`
-  margin-top: 20px;
   padding: 10px 20px;
   background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
 
   &:hover {
     background-color: #45a049;
@@ -3097,4 +3144,4 @@ export const getDecks = (): Deck[] => {
 };----------------------------------------
 
 Summary:
-Total lines of user-generated content: 2694
+Total lines of user-generated content: 2741
