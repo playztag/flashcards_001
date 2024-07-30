@@ -8,9 +8,10 @@ interface SideEditorProps {
   setContent: React.Dispatch<React.SetStateAction<CardElement[]>>;
   undo: () => void;
   redo: () => void;
+  onContentChange: (content: string) => void;
 }
 
-const SideEditor: React.FC<SideEditorProps> = ({ side, content, setContent, undo, redo }) => {
+const SideEditor: React.FC<SideEditorProps> = ({ side, content, setContent, undo, redo, onContentChange }) => {
   const addElement = (type: 'text' | 'rectangle' | 'circle') => {
     const newElement: CardElement = {
       id: Date.now().toString(),
@@ -39,6 +40,7 @@ const SideEditor: React.FC<SideEditorProps> = ({ side, content, setContent, undo
           element={el}
           updateElement={updateElement}
           deleteElement={deleteElement}
+          onContentChange={onContentChange}
         />
       ))}
       <button onClick={() => addElement('text')}>Add Text</button>

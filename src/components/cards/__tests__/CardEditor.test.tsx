@@ -1,41 +1,58 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { BrowserRouter as Router } from 'react-router-dom';
 import CardEditor from '../CardEditor';
+import { saveCards } from '../../../services/storage';
+
+jest.mock('../../../services/storage', () => ({
+  getCards: jest.fn(() => []),
+  saveCards: jest.fn(),
+}));
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => jest.fn(),
+}));
 
 describe('CardEditor Component', () => {
-  const renderWithRouter = (ui: React.ReactElement) => {
-    return render(<Router>{ui}</Router>);
-  };
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-  it('should add elements and handle undo/redo correctly', () => {
-    renderWithRouter(<CardEditor />);
+  // ... other tests ...
 
-    // Assuming there are buttons to add text content and undo/redo
-    const addTextButton = screen.getByText('Add Text');
-    fireEvent.click(addTextButton);
+  it('should handle undo and redo operations', async () => {
+    render(
+      <Router>
+        <CardEditor />
+      </Router>
+    );
 
-    // Simulate setting text content
-    const textArea = screen.getByPlaceholderText('Enter text');
-    fireEvent.change(textArea, { target: { value: 'Side A Content' } });
+    // Add content to Side A
+    const addTextButtonsA = screen.getAllByText('Add Text');
+    fireEvent.click(addTextButtonsA[0]);
+    const textAreasA = screen.getAllByPlaceholderText('Enter text');
+    fireEvent.change(textAreasA[0], { target: { value: 'Side A Content' } });
 
-    const saveButton = screen.getByText('Save');
-    fireEvent.click(saveButton);
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Side A Content')).toBeInTheDocument();
+    });
 
-    // Verify the content is added
-    expect(screen.getByDisplayValue('Side A Content')).toBeInTheDocument();
+    // Undo
+    const undoButtons = screen.getAllByText('Undo');
+    fireEvent.click(undoButtons[0]);
 
-    const undoButton = screen.getByText('Undo');
-    fireEvent.click(undoButton);
+    await waitFor(() => {
+      expect(screen.queryByDisplayValue('Side A Content')).not.toBeInTheDocument();
+    });
 
-    // Verify the content is removed
-    expect(screen.queryByDisplayValue('Side A Content')).not.toBeInTheDocument();
+    // Redo
+    const redoButtons = screen.getAllByText('Redo');
+    fireEvent.click(redoButtons[0]);
 
-    const redoButton = screen.getByText('Redo');
-    fireEvent.click(redoButton);
-
-    // Verify the content is added back
-    expect(screen.getByDisplayValue('Side A Content')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Side A Content')).toBeInTheDocument();
+    });
   });
 });

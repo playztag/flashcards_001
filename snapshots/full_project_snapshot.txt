@@ -21,8 +21,6 @@ Project Structure:
 |   |   +-- create_card.feature
 |   |   +-- delete_card.feature
 |   |   +-- edit_card.feature
-|   +-- card_viewer
-|   |   +-- *
 |   +-- deck_management
 |       +-- add_card_to_deck.feature
 |       +-- create_deck.feature
@@ -1659,12 +1657,19 @@ interface ElementEditorProps {
   element: CardElement;
   updateElement: (id: string, updatedElement: CardElement) => void;
   deleteElement: (id: string) => void;
+  onContentChange: (content: string) => void;
 }
 
-const ElementEditor: React.FC<ElementEditorProps> = ({ element, updateElement, deleteElement }) => {
+const ElementEditor: React.FC<ElementEditorProps> = ({ element, updateElement, deleteElement, onContentChange }) => {
   const [content, setContent] = useState(element.content);
   const [style, setStyle] = useState(element.style);
   const [position, setPosition] = useState(element.position);
+
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value;
+    setContent(newContent);
+    onContentChange(newContent);
+  };
 
   const handleSave = () => {
     const updatedElement = { ...element, content, style, position };
@@ -1676,7 +1681,7 @@ const ElementEditor: React.FC<ElementEditorProps> = ({ element, updateElement, d
       {element.type === 'text' && (
         <textarea
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={handleContentChange}
           placeholder="Enter text"
           style={styles.textarea}
         />
@@ -1697,8 +1702,7 @@ const styles = {
   },
 };
 
-export default ElementEditor;
-----------------------------------------
+export default ElementEditor;----------------------------------------
 
 File: ./src/components/cards/CardList.md
 ----------------------------------------
@@ -1775,9 +1779,10 @@ interface SideEditorProps {
   setContent: React.Dispatch<React.SetStateAction<CardElement[]>>;
   undo: () => void;
   redo: () => void;
+  onContentChange: (content: string) => void;
 }
 
-const SideEditor: React.FC<SideEditorProps> = ({ side, content, setContent, undo, redo }) => {
+const SideEditor: React.FC<SideEditorProps> = ({ side, content, setContent, undo, redo, onContentChange }) => {
   const addElement = (type: 'text' | 'rectangle' | 'circle') => {
     const newElement: CardElement = {
       id: Date.now().toString(),
@@ -1806,6 +1811,7 @@ const SideEditor: React.FC<SideEditorProps> = ({ side, content, setContent, undo
           element={el}
           updateElement={updateElement}
           deleteElement={deleteElement}
+          onContentChange={onContentChange}
         />
       ))}
       <button onClick={() => addElement('text')}>Add Text</button>
@@ -1826,12 +1832,11 @@ const styles = {
   },
 };
 
-export default SideEditor;
-----------------------------------------
+export default SideEditor;----------------------------------------
 
 File: ./src/components/cards/CardEditor.tsx
 ----------------------------------------
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardElement } from '../../types/Card';
 import { saveCards, getCards } from '../../services/storage';
@@ -1841,32 +1846,68 @@ import SideEditor from './SideEditor';
 const CardEditor: React.FC = () => {
   const { state: sideAContent, set: setSideAContent, undo: undoA, redo: redoA } = useUndoRedo<CardElement[]>([]);
   const { state: sideBContent, set: setSideBContent, undo: undoB, redo: redoB } = useUndoRedo<CardElement[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  const handleContentChange = (side: 'A' | 'B', content: string) => {
+    const setContent = side === 'A' ? setSideAContent : setSideBContent;
+    setContent(prevContent => 
+      prevContent.map(element => 
+        element.type === 'text' ? { ...element, content } : element
+      )
+    );
+  };
+
   const handleSave = () => {
-    if (!sideAContent.length || !sideBContent.length) {
-      alert('Both sides of the card must have content');
-      return;
+    try {
+      if (!sideAContent.length || !sideBContent.length) {
+        throw new Error('Both sides of the card must have content');
+      }
+
+      const newCard: Card = {
+        id: Date.now().toString(),
+        deckId: '',
+        sideA: { elements: sideAContent },
+        sideB: { elements: sideBContent },
+      };
+
+      const existingCards = getCards();
+      saveCards(Array.isArray(existingCards) ? [...existingCards, newCard] : [newCard]);
+      navigate('/');
+    } catch (error) {
+      setError(error.message);
     }
+  };
 
-    const newCard: Card = {
-      id: Date.now().toString(),
-      deckId: '',
-      sideA: { elements: sideAContent },
-      sideB: { elements: sideBContent },
-    };
+  const handleUndo = (side: 'A' | 'B') => {
+    side === 'A' ? undoA() : undoB();
+  };
 
-    const existingCards = getCards();
-    saveCards([...existingCards, newCard]);
-    navigate('/');
+  const handleRedo = (side: 'A' | 'B') => {
+    side === 'A' ? redoA() : redoB();
   };
 
   return (
     <div style={styles.cardEditor}>
       <h2>Create New Card</h2>
+      {error && <div style={styles.error}>{error}</div>}
       <div style={styles.canvas}>
-        <SideEditor side="A" content={sideAContent} setContent={setSideAContent} undo={undoA} redo={redoA} />
-        <SideEditor side="B" content={sideBContent} setContent={setSideBContent} undo={undoB} redo={redoB} />
+        <SideEditor
+          side="A"
+          content={sideAContent}
+          setContent={setSideAContent}
+          undo={() => handleUndo('A')}
+          redo={() => handleRedo('A')}
+          onContentChange={(content) => handleContentChange('A', content)}
+        />
+        <SideEditor
+          side="B"
+          content={sideBContent}
+          setContent={setSideBContent}
+          undo={() => handleUndo('B')}
+          redo={() => handleRedo('B')}
+          onContentChange={(content) => handleContentChange('B', content)}
+        />
       </div>
       <button onClick={handleSave} style={styles.saveButton}>Save Card</button>
     </div>
@@ -1889,10 +1930,13 @@ const styles = {
     border: 'none',
     cursor: 'pointer',
   },
+  error: {
+    color: 'red',
+    marginBottom: '10px',
+  },
 };
 
-export default CardEditor;
-----------------------------------------
+export default CardEditor;----------------------------------------
 
 File: ./src/components/cards/__tests__/SideEditor.test.tsx
 ----------------------------------------
@@ -1947,43 +1991,102 @@ describe('SideEditor Component', () => {
 File: ./src/components/cards/__tests__/CardEditor.test.tsx
 ----------------------------------------
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { BrowserRouter as Router } from 'react-router-dom';
 import CardEditor from '../CardEditor';
+import { saveCards, getCards } from '../../../services/storage';
+
+jest.mock('../../../services/storage', () => ({
+  getCards: jest.fn(() => []),
+  saveCards: jest.fn(),
+}));
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => jest.fn(),
+}));
 
 describe('CardEditor Component', () => {
-  const renderWithRouter = (ui: React.ReactElement) => {
-    return render(<Router>{ui}</Router>);
-  };
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-  it('should add elements and handle undo/redo correctly', () => {
-    renderWithRouter(<CardEditor />);
+  it('should create a new card with content on both sides', async () => {
+    render(
+      <Router>
+        <CardEditor />
+      </Router>
+    );
 
-    // Assuming there are buttons to add text content and undo/redo
-    const addTextButton = screen.getByText('Add Text');
-    fireEvent.click(addTextButton);
+    // Add content to Side A
+    const addTextButtonsA = screen.getAllByText('Add Text');
+    fireEvent.click(addTextButtonsA[0]);
+    const textAreasA = screen.getAllByPlaceholderText('Enter text');
+    fireEvent.change(textAreasA[0], { target: { value: 'Side A Content' } });
 
-    // Simulate setting text content
-    const textArea = screen.getByPlaceholderText('Enter text');
-    fireEvent.change(textArea, { target: { value: 'Side A Content' } });
+    // Add content to Side B
+    const addTextButtonsB = screen.getAllByText('Add Text');
+    fireEvent.click(addTextButtonsB[1]);
+    const textAreasB = screen.getAllByPlaceholderText('Enter text');
+    fireEvent.change(textAreasB[1], { target: { value: 'Side B Content' } });
 
-    const saveButton = screen.getByText('Save');
+    // Save the card
+    const saveButton = screen.getByText('Save Card');
     fireEvent.click(saveButton);
 
-    // Verify the content is added
+    // Check if the card was saved
+    await waitFor(() => {
+      expect(saveCards).toHaveBeenCalledWith(expect.arrayContaining([
+        expect.objectContaining({
+          sideA: { elements: expect.arrayContaining([expect.objectContaining({ content: 'Side A Content' })]) },
+          sideB: { elements: expect.arrayContaining([expect.objectContaining({ content: 'Side B Content' })]) },
+        })
+      ]));
+    });
+  });
+
+  it('should not save a card with empty content on either side', async () => {
+    render(
+      <Router>
+        <CardEditor />
+      </Router>
+    );
+
+    // Try to save the card without adding content
+    const saveButton = screen.getByText('Save Card');
+    fireEvent.click(saveButton);
+
+    // Check if an error message was shown
+    expect(screen.getByText('Both sides of the card must have content')).toBeInTheDocument();
+    expect(saveCards).not.toHaveBeenCalled();
+  });
+
+  it('should handle undo and redo operations', () => {
+    render(
+      <Router>
+        <CardEditor />
+      </Router>
+    );
+
+    // Add content to Side A
+    const addTextButtonsA = screen.getAllByText('Add Text');
+    fireEvent.click(addTextButtonsA[0]);
+    const textAreasA = screen.getAllByPlaceholderText('Enter text');
+    fireEvent.change(textAreasA[0], { target: { value: 'Side A Content' } });
+
     expect(screen.getByDisplayValue('Side A Content')).toBeInTheDocument();
 
-    const undoButton = screen.getByText('Undo');
-    fireEvent.click(undoButton);
+    // Undo
+    const undoButtons = screen.getAllByText('Undo');
+    fireEvent.click(undoButtons[0]);
 
-    // Verify the content is removed
     expect(screen.queryByDisplayValue('Side A Content')).not.toBeInTheDocument();
 
-    const redoButton = screen.getByText('Redo');
-    fireEvent.click(redoButton);
+    // Redo
+    const redoButtons = screen.getAllByText('Redo');
+    fireEvent.click(redoButtons[0]);
 
-    // Verify the content is added back
     expect(screen.getByDisplayValue('Side A Content')).toBeInTheDocument();
   });
 });----------------------------------------
@@ -2516,14 +2619,11 @@ const useUndoRedo = <T>(initialState: T) => {
   const [history, setHistory] = useState<T[]>([]);
   const [redoStack, setRedoStack] = useState<T[]>([]);
 
-  const set: React.Dispatch<React.SetStateAction<T>> = useCallback(
-    (newState: React.SetStateAction<T>) => {
-      setHistory((prevHistory) => [...prevHistory, state]);
-      setState(newState);
-      setRedoStack([]);
-    },
-    [state]
-  );
+  const set = useCallback((newState: T) => {
+    setHistory((prevHistory) => [...prevHistory, state]);
+    setState(newState);
+    setRedoStack([]);
+  }, [state]);
 
   const undo = useCallback(() => {
     if (history.length === 0) return;
@@ -2544,8 +2644,7 @@ const useUndoRedo = <T>(initialState: T) => {
   return { state, set, undo, redo };
 };
 
-export default useUndoRedo;
-----------------------------------------
+export default useUndoRedo;----------------------------------------
 
 File: ./src/hooks/useDeck.md
 ----------------------------------------
@@ -2923,4 +3022,4 @@ export const getDecks = (): Deck[] => {
 ----------------------------------------
 
 Summary:
-Total lines of user-generated content: 2516
+Total lines of user-generated content: 2617

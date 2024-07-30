@@ -5,12 +5,19 @@ interface ElementEditorProps {
   element: CardElement;
   updateElement: (id: string, updatedElement: CardElement) => void;
   deleteElement: (id: string) => void;
+  onContentChange: (content: string) => void;
 }
 
-const ElementEditor: React.FC<ElementEditorProps> = ({ element, updateElement, deleteElement }) => {
+const ElementEditor: React.FC<ElementEditorProps> = ({ element, updateElement, deleteElement, onContentChange }) => {
   const [content, setContent] = useState(element.content);
   const [style, setStyle] = useState(element.style);
   const [position, setPosition] = useState(element.position);
+
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value;
+    setContent(newContent);
+    onContentChange(newContent);
+  };
 
   const handleSave = () => {
     const updatedElement = { ...element, content, style, position };
@@ -22,7 +29,7 @@ const ElementEditor: React.FC<ElementEditorProps> = ({ element, updateElement, d
       {element.type === 'text' && (
         <textarea
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={handleContentChange}
           placeholder="Enter text"
           style={styles.textarea}
         />
