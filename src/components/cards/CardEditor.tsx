@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Stage, Layer, Rect, Circle, Text, Transformer } from 'react-konva';
-import Konva from 'konva';
 import { HexColorPicker } from 'react-colorful';
 import styled from '@emotion/styled';
 import { CardElement, Card } from '../../types/Card';
+import Konva from 'konva';
 
 interface CardEditorProps {
   card?: Card;
@@ -11,11 +11,17 @@ interface CardEditorProps {
 }
 
 const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
-  const [sideAElements, setSideAElements] = useState<CardElement[]>(card?.sideA.elements || []);
-  const [sideBElements, setSideBElements] = useState<CardElement[]>(card?.sideB.elements || []);
+  const [sideAElements, setSideAElements] = useState<CardElement[]>(() => {
+    return card?.elements?.filter(el => el.side === 'A') || [];
+  });
+  const [sideBElements, setSideBElements] = useState<CardElement[]>(() => {
+    return card?.elements?.filter(el => el.side === 'B') || [];
+  });
   const [selectedId, selectShape] = useState<string | null>(null);
   const [tool, setTool] = useState<'select' | 'rectangle' | 'circle' | 'text'>('select');
   const [color, setColor] = useState("#000000");
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [newShapeDef, setNewShapeDef] = useState<CardElement | null>(null);
   const stageARef = useRef<Konva.Stage>(null);
   const stageBRef = useRef<Konva.Stage>(null);
   const layerARef = useRef<Konva.Layer>(null);
@@ -39,57 +45,85 @@ const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
     }
   }, [selectedId]);
 
-  const addElement = (side: 'A' | 'B', type: 'rectangle' | 'circle' | 'text') => {
-    const newElement: CardElement = {
-      id: `${side}${Date.now()}`,
-      type,
-      content: type === 'text' ? 'New Text' : '',
-      style: { backgroundColor: color, borderColor: color, borderWidth: 2, fontColor: color },
-      position: { x: 50, y: 50, width: 100, height: 100 },
-    };
-    if (side === 'A') {
-      setSideAElements([...sideAElements, newElement]);
+  const addElement = (element: CardElement) => {
+    if (element.side === 'A') {
+      setSideAElements(prev => [...prev, element]);
     } else {
-      setSideBElements([...sideBElements, newElement]);
+      setSideBElements(prev => [...prev, element]);
     }
   };
 
-  const updateElement = (side: 'A' | 'B', id: string, newProps: Partial<CardElement>) => {
-    const updateElements = (elements: CardElement[]) =>
+  const updateElement = (id: string, newProps: Partial<CardElement>) => {
+    const updateSide = (elements: CardElement[]) =>
       elements.map(el => el.id === id ? { ...el, ...newProps } : el);
-    
-    if (side === 'A') {
-      setSideAElements(updateElements(sideAElements));
+
+    if (id.startsWith('A')) {
+      setSideAElements(updateSide);
     } else {
-      setSideBElements(updateElements(sideBElements));
+      setSideBElements(updateSide);
     }
   };
 
-  const handleStageClick = (side: 'A' | 'B', e: Konva.KonvaEventObject<MouseEvent>) => {
-    const clickedOnEmpty = e.target === e.target.getStage();
-    if (clickedOnEmpty) {
-      selectShape(null);
-      if (tool !== 'select') {
-        addElement(side, tool);
-        setTool('select');
+  const handleStageMouseDown = (side: 'A' | 'B', e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (tool === 'select') {
+      const clickedOnEmpty = e.target === e.target.getStage();
+      if (clickedOnEmpty) {
+        selectShape(null);
+      }
+    } else {
+      setIsDrawing(true);
+      const pos = e.target.getStage()?.getPointerPosition();
+      if (pos) {
+        setNewShapeDef({
+          id: `${side}${Date.now()}`,
+          type: tool,
+          side,
+          position: { x: pos.x, y: pos.y, width: 0, height: 0 },
+          style: { fill: color, stroke: color, strokeWidth: 2 },
+          content: tool === 'text' ? 'New Text' : '',
+        });
       }
     }
   };
 
-  const renderShape = (side: 'A' | 'B', element: CardElement) => {
+  const handleStageMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (!isDrawing || !newShapeDef) return;
+    const stage = e.target.getStage();
+    const pos = stage?.getPointerPosition();
+    if (pos) {
+      setNewShapeDef({
+        ...newShapeDef,
+        position: {
+          ...newShapeDef.position,
+          width: pos.x - newShapeDef.position.x,
+          height: pos.y - newShapeDef.position.y,
+        },
+      });
+    }
+  };
+
+  const handleStageMouseUp = () => {
+    if (isDrawing && newShapeDef) {
+      addElement(newShapeDef);
+      setIsDrawing(false);
+      setNewShapeDef(null);
+    }
+  };
+
+  const renderShape = (element: CardElement) => {
     const shapeProps = {
       id: element.id,
       x: element.position.x,
       y: element.position.y,
       width: element.position.width,
       height: element.position.height,
-      fill: element.style.backgroundColor,
-      stroke: element.style.borderColor,
-      strokeWidth: element.style.borderWidth,
+      fill: element.style.fill,
+      stroke: element.style.stroke,
+      strokeWidth: element.style.strokeWidth,
       draggable: true,
       onClick: () => selectShape(element.id),
       onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => {
-        updateElement(side, element.id, {
+        updateElement(element.id, {
           position: {
             ...element.position,
             x: e.target.x(),
@@ -99,7 +133,7 @@ const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
       },
       onTransformEnd: (e: Konva.KonvaEventObject<Event>) => {
         const node = e.target;
-        updateElement(side, element.id, {
+        updateElement(element.id, {
           position: {
             ...element.position,
             x: node.x(),
@@ -123,7 +157,7 @@ const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
             {...shapeProps}
             text={element.content}
             fontSize={element.style.fontSize || 16}
-            fill={element.style.fontColor}
+            fill={element.style.fill}
           />
         );
       default:
@@ -132,20 +166,12 @@ const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
   };
 
   const handleSave = () => {
-    if (card) {
-      onSave({
-        ...card,
-        sideA: { elements: sideAElements },
-        sideB: { elements: sideBElements }
-      });
-    } else {
-      onSave({
-        id: Date.now().toString(),
-        deckId: '',
-        sideA: { elements: sideAElements },
-        sideB: { elements: sideBElements }
-      });
-    }
+    const updatedCard: Card = {
+      id: card?.id || Date.now().toString(),
+      deckId: card?.deckId || '',
+      elements: [...sideAElements, ...sideBElements],
+    };
+    onSave(updatedCard);
   };
 
   return (
@@ -163,40 +189,42 @@ const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
             <HexColorPicker color={color} onChange={setColor} />
           </ColorPickerContainer>
         </ToolbarContainer>
-        <SidesContainer>
-          <SideContainer>
+        <SideBySideContainer>
+          <StageContainer>
             <h3>Side A</h3>
-            <StageContainer>
-              <Stage
-                width={320}
-                height={240}
-                ref={stageARef}
-                onClick={(e) => handleStageClick('A', e)}
-              >
-                <Layer ref={layerARef}>
-                  {sideAElements.map((element) => renderShape('A', element))}
-                  <Transformer ref={transformerRef} />
-                </Layer>
-              </Stage>
-            </StageContainer>
-          </SideContainer>
-          <SideContainer>
+            <Stage
+              width={400}
+              height={300}
+              ref={stageARef}
+              onMouseDown={(e) => handleStageMouseDown('A', e)}
+              onMouseMove={handleStageMouseMove}
+              onMouseUp={handleStageMouseUp}
+            >
+              <Layer ref={layerARef}>
+                {sideAElements.map((element) => renderShape(element))}
+                {isDrawing && newShapeDef && newShapeDef.side === 'A' && renderShape(newShapeDef)}
+                <Transformer ref={transformerRef} />
+              </Layer>
+            </Stage>
+          </StageContainer>
+          <StageContainer>
             <h3>Side B</h3>
-            <StageContainer>
-              <Stage
-                width={320}
-                height={240}
-                ref={stageBRef}
-                onClick={(e) => handleStageClick('B', e)}
-              >
-                <Layer ref={layerBRef}>
-                  {sideBElements.map((element) => renderShape('B', element))}
-                  <Transformer ref={transformerRef} />
-                </Layer>
-              </Stage>
-            </StageContainer>
-          </SideContainer>
-        </SidesContainer>
+            <Stage
+              width={400}
+              height={300}
+              ref={stageBRef}
+              onMouseDown={(e) => handleStageMouseDown('B', e)}
+              onMouseMove={handleStageMouseMove}
+              onMouseUp={handleStageMouseUp}
+            >
+              <Layer ref={layerBRef}>
+                {sideBElements.map((element) => renderShape(element))}
+                {isDrawing && newShapeDef && newShapeDef.side === 'B' && renderShape(newShapeDef)}
+                <Transformer ref={transformerRef} />
+              </Layer>
+            </Stage>
+          </StageContainer>
+        </SideBySideContainer>
         <SaveButton onClick={handleSave}>Save Card</SaveButton>
       </EditArea>
     </EditorContainer>
@@ -208,7 +236,7 @@ const EditorContainer = styled.div`
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
 `;
 
@@ -254,24 +282,17 @@ const ColorPickerContainer = styled.div`
   }
 `;
 
-const SidesContainer = styled.div`
+const SideBySideContainer = styled.div`
   display: flex;
   justify-content: space-between;
   margin-bottom: 20px;
-`;
-
-const SideContainer = styled.div`
-  width: 48%;
-
-  h3 {
-    margin-bottom: 10px;
-  }
 `;
 
 const StageContainer = styled.div`
   border: 1px solid #cccccc;
   border-radius: 4px;
   overflow: hidden;
+  width: 48%;
 `;
 
 const SaveButton = styled.button`
@@ -283,6 +304,7 @@ const SaveButton = styled.button`
   cursor: pointer;
   font-size: 16px;
   transition: background-color 0.3s;
+  margin-top: 20px;
 
   &:hover {
     background-color: #45a049;

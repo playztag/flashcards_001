@@ -1,3 +1,5 @@
+// src/pages/Home.tsx
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getCards } from '../services/storage';
@@ -11,6 +13,11 @@ const Home: React.FC = () => {
     setCards(fetchedCards);
   }, []);
 
+  const getCardTitle = (card: Card) => {
+    const textElement = card.elements.find(element => element.type === 'text');
+    return textElement?.content || 'Untitled Card';
+  };
+
   return (
     <div>
       <h1>Flash Cards</h1>
@@ -21,7 +28,7 @@ const Home: React.FC = () => {
           {cards.map(card => (
             <li key={card.id}>
               <Link to={`/editor/${card.id}`}>
-                {card.sideA.elements[0]?.content || 'Untitled Card'}
+                {getCardTitle(card)}
               </Link>
             </li>
           ))}

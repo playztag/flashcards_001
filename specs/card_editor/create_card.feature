@@ -69,29 +69,60 @@ Scenario: View newly created card in the list
   And the card count should increase by 1
 
 
-  Feature: Create a new flash card
+Background:
+  Given I am on the card editor page
+  And I am viewing the "Physics" deck with 15 existing cards
+
+Scenario: Successfully create a new flash card
+  When I click on "Create New Card"
+  Then I should see two empty canvases labeled "Side A" and "Side B"
+  When I add text "What is the speed of light?" to Side A
+  And I add text "299,792,458 meters per second" to Side B
+  And I click "Save"
+  Then I should see a success message
+  And the card list should update to show 16 cards
+  And the new card should appear at the bottom of the card list
+
+Scenario: Edit both sides simultaneously
+  When I create a new card
+  Then I should be able to edit Side A and Side B simultaneously
+  And changes on one side should not affect the other side
+
+Scenario: View newly created card in the list
+  When I create a new card with the question "What is Newton's Second Law?" on Side A
+  And I add the answer "F = ma" on Side B
+  Then I should see the new card in the card list
+  And the card count should increase by 1
+
+    
+Feature: Create and edit a new flash card
+  As a user
+  I want to create and edit a new flash card
+  So that I can add content to my study decks seamlessly
 
   Background:
     Given I am on the card editor page
-    And I am viewing the "Physics" deck with 15 existing cards
+    And I am viewing the "Physics" deck
 
-  Scenario: Successfully create a new flash card
+  Scenario: Successfully create and edit a new flash card
     When I click on "Create New Card"
-    Then I should see two empty canvases labeled "Side A" and "Side B"
+    Then I should see two canvases labeled "Side A" and "Side B" side by side
     When I add text "What is the speed of light?" to Side A
-    And I add text "299,792,458 meters per second" to Side B
-    And I click "Save"
+    And I add a circle to Side B
+    And I add text "299,792,458 m/s" inside the circle on Side B
+    Then I should see the changes reflected on both sides simultaneously
+    When I click "Undo"
+    Then the last action should be undone on Side B
+    When I click "Redo"
+    Then the last action should be redone on Side B
+    When I click "Save"
     Then I should see a success message
-    And the card list should update to show 16 cards
-    And the new card should appear at the bottom of the card list
+    And the new card should appear in my card list with content on both sides
 
-  Scenario: Edit both sides simultaneously
+  Scenario: Seamless editing across both sides
     When I create a new card
-    Then I should be able to edit Side A and Side B simultaneously
-    And changes on one side should not affect the other side
-
-  Scenario: View newly created card in the list
-    When I create a new card with the question "What is Newton's Second Law?" on Side A
-    And I add the answer "F = ma" on Side B
-    Then I should see the new card in the card list
-    And the card count should increase by 1
+    And I add a rectangle to Side A
+    And I add text to Side B
+    And I modify the rectangle on Side A
+    Then I should be able to continue editing Side B without any interruption
+    And the undo history should contain actions from both sides in the correct order

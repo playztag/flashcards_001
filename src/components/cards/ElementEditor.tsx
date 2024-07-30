@@ -20,7 +20,7 @@ const ElementEditor: React.FC<ElementEditorProps> = ({ element, updateElement, d
   };
 
   const handleSave = () => {
-    const updatedElement = { ...element, content, style, position };
+    const updatedElement: CardElement = { ...element, content, style, position };
     updateElement(element.id, updatedElement);
   };
 

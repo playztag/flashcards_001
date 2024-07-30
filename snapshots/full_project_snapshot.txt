@@ -3,6 +3,10 @@ Project Structure:
 +-- README.md
 +-- config
 |   +-- webpack.config.md
++-- cypress
+|   +-- integration
+|       +-- create_deck.spec.js
++-- cypress.json
 +-- docs
 |   +-- ui_specs.md
 +-- package-lock.json
@@ -11,6 +15,7 @@ Project Structure:
 |   +-- index.html
 |   +-- manifest.json
 |   +-- robots.txt
++-- run_sc.sh
 +-- scripts
 |   +-- create_bdd.sh
 |   +-- create_files.sh
@@ -34,6 +39,7 @@ Project Structure:
 |   +-- App.tsx
 |   +-- __tests__
 |   |   +-- App.test.tsx
+|   |   +-- components
 |   +-- components
 |   |   +-- cards
 |   |   +-- common
@@ -93,6 +99,20 @@ Project Structure:
 +-- tsconfig.json
 
 File Contents:
+
+File: ./cypress/integration/create_deck.spec.js
+----------------------------------------
+describe('Create Deck', () => {
+  it('successfully creates a new deck', () => {
+    cy.visit('/deck-management');
+    cy.get('input[placeholder="Enter deck name"]').type('New Test Deck');
+    cy.get('input[placeholder="Enter deck description"]').type('This is a test deck');
+    cy.contains('Create New Deck').click();
+    cy.contains('New Test Deck').should('be.visible');
+    cy.contains('This is a test deck').should('be.visible');
+  });
+});
+----------------------------------------
 
 File: ./CHANGELOG.md
 ----------------------------------------
@@ -2303,6 +2323,28 @@ const CardViewer: React.FC<CardViewerProps> = ({ card }) => {
 export default CardViewer;
 ----------------------------------------
 
+File: ./src/components/decks/DeckItem.tsx
+----------------------------------------
+import React from 'react';
+import { Deck } from '../../types/Deck';
+
+interface DeckItemProps {
+  deck: Deck;
+}
+
+const DeckItem: React.FC<DeckItemProps> = ({ deck }) => {
+  return (
+    <li>
+      <h3>{deck.name}</h3>
+      <p>{deck.description}</p>
+      <p>Cards: {deck.cards.length}</p>
+    </li>
+  );
+};
+
+export default DeckItem;
+----------------------------------------
+
 File: ./src/components/decks/DeckItem.md
 ----------------------------------------
 # DeckItem
@@ -2367,68 +2409,89 @@ The DeckManager component provides an interface for creating, viewing, updating,
 
 File: ./src/components/decks/DeckManager.tsx
 ----------------------------------------
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Deck } from '../../types/Deck';
 import { saveDecks, getDecks } from '../../services/storage';
+import DeckList from './DeckList';
 
 const DeckManager: React.FC = () => {
-  const [decks, setDecks] = useState<Deck[]>(getDecks());
+  const [decks, setDecks] = useState<Deck[]>([]);
+  const [newDeckName, setNewDeckName] = useState('');
+  const [newDeckDescription, setNewDeckDescription] = useState('');
 
-  const createDeck = (name: string, description: string) => {
+  useEffect(() => {
+    setDecks(getDecks());
+  }, []);
+
+  const createDeck = () => {
+    if (newDeckName.trim() === '') {
+      alert('Deck name cannot be empty');
+      return;
+    }
+
     const newDeck: Deck = {
       id: Date.now().toString(),
-      name,
-      description,
+      name: newDeckName,
+      description: newDeckDescription,
       cards: [],
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+
     const updatedDecks = [...decks, newDeck];
     setDecks(updatedDecks);
     saveDecks(updatedDecks);
-  };
-
-  const exportDecks = (decks: Deck[]): void => {
-    const dataStr = JSON.stringify(decks);
-    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-
-    const exportFileDefaultName = 'decks.json';
-
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-  };
-
-  const importDecks = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const fileReader = new FileReader();
-    fileReader.onload = (e) => {
-      const content = e.target?.result as string;
-      const importedDecks: Deck[] = JSON.parse(content);
-      saveDecks(importedDecks);
-      setDecks(importedDecks);
-    };
-    if (event.target.files?.[0]) {
-      fileReader.readAsText(event.target.files[0]);
-    }
+    setNewDeckName('');
+    setNewDeckDescription('');
   };
 
   return (
     <div>
       <h2>Deck Manager</h2>
-      <button onClick={() => createDeck('New Deck', 'Description')}>Create New Deck</button>
-      <ul>
-        {decks.map((deck) => (
-          <li key={deck.id}>{deck.name}</li>
-        ))}
-      </ul>
-      <button onClick={() => exportDecks(decks)}>Export Decks</button>
-      <input type="file" onChange={importDecks} />
+      <div>
+        <input
+          type="text"
+          value={newDeckName}
+          onChange={(e) => setNewDeckName(e.target.value)}
+          placeholder="Enter deck name"
+        />
+        <input
+          type="text"
+          value={newDeckDescription}
+          onChange={(e) => setNewDeckDescription(e.target.value)}
+          placeholder="Enter deck description"
+        />
+        <button onClick={createDeck}>Create New Deck</button>
+      </div>
+      <DeckList decks={decks} />
     </div>
   );
 };
 
 export default DeckManager;
+----------------------------------------
+
+File: ./src/components/decks/DeckList.tsx
+----------------------------------------
+import React from 'react';
+import { Deck } from '../../types/Deck';
+import DeckItem from './DeckItem';
+
+interface DeckListProps {
+  decks: Deck[];
+}
+
+const DeckList: React.FC<DeckListProps> = ({ decks }) => {
+  return (
+    <ul>
+      {decks.map((deck) => (
+        <DeckItem key={deck.id} deck={deck} />
+      ))}
+    </ul>
+  );
+};
+
+export default DeckList;
 ----------------------------------------
 
 File: ./src/components/decks/DeckList.md
@@ -2590,6 +2653,40 @@ test('renders App component', () => {
   const headerElement = screen.getByText(/Flash Card Creator/i);
   expect(headerElement).toBeInTheDocument();
 });----------------------------------------
+
+File: ./src/__tests__/components/decks/DeckManager.test.tsx
+----------------------------------------
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import DeckManager from '../../../components/decks/DeckManager';
+import * as storage from '../../../services/storage';
+
+jest.mock('../../../services/storage');
+
+describe('DeckManager', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders the deck manager', () => {
+    render(<DeckManager />);
+    expect(screen.getByText('Deck Manager')).toBeInTheDocument();
+  });
+
+  it('creates a new deck', () => {
+    const mockSaveDecks = jest.spyOn(storage, 'saveDecks');
+    render(<DeckManager />);
+    
+    fireEvent.change(screen.getByPlaceholderText('Enter deck name'), { target: { value: 'New Deck' } });
+    fireEvent.change(screen.getByPlaceholderText('Enter deck description'), { target: { value: 'Description' } });
+    fireEvent.click(screen.getByText('Create New Deck'));
+
+    expect(mockSaveDecks).toHaveBeenCalled();
+    expect(screen.getByText('New Deck')).toBeInTheDocument();
+  });
+});
+----------------------------------------
 
 File: ./src/index.md
 ----------------------------------------
@@ -2785,25 +2882,20 @@ import '@testing-library/jest-dom';----------------------------------------
 
 File: ./src/pages/DeckManagement.tsx
 ----------------------------------------
-import React, { useEffect } from 'react';
+import React from 'react';
+import DeckManager from '../components/decks/DeckManager';
 
 const DeckManagement: React.FC = () => {
-  useEffect(() => {
-    console.log('DeckManagement: Component mounted');
-  }, []);
-
-  console.log('DeckManagement: Rendering');
-
   return (
     <div>
-      <h1>DeckManagement</h1>
-      <p style={{ color: 'red' }}>Debug: DeckManagement component rendered</p>
-      {/* TODO: Implement DeckManagement page */}
+      <h1>Deck Management</h1>
+      <DeckManager />
     </div>
   );
 };
 
-export default DeckManagement;----------------------------------------
+export default DeckManagement;
+----------------------------------------
 
 File: ./src/pages/Home.tsx
 ----------------------------------------
@@ -3141,7 +3233,24 @@ export const saveDecks = (decks: Deck[]): void => {
 export const getDecks = (): Deck[] => {
   const decks = localStorage.getItem(DECKS_KEY);
   return decks ? JSON.parse(decks) : [];
-};----------------------------------------
+};
+
+export const saveDeck = (deck: Deck): void => {
+  const decks = getDecks();
+  const index = decks.findIndex(d => d.id === deck.id);
+  if (index !== -1) {
+    decks[index] = deck;
+  } else {
+    decks.push(deck);
+  }
+  saveDecks(decks);
+};
+
+export const getDeck = (deckId: string): Deck | undefined => {
+  const decks = getDecks();
+  return decks.find(deck => deck.id === deckId);
+};
+----------------------------------------
 
 Summary:
-Total lines of user-generated content: 2741
+Total lines of user-generated content: 2828

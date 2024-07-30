@@ -3,7 +3,7 @@ import { CardElement } from '../../types/Card';
 import ElementEditor from './ElementEditor'; 
 
 interface SideEditorProps {
-  side: string;
+  side: 'A' | 'B';
   content: CardElement[];
   setContent: React.Dispatch<React.SetStateAction<CardElement[]>>;
   undo: () => void;
@@ -19,6 +19,7 @@ const SideEditor: React.FC<SideEditorProps> = ({ side, content, setContent, undo
       content: '',
       style: {},
       position: { x: 0, y: 0, width: 100, height: 100 },
+      side: side  // Add this line
     };
     setContent([...content, newElement]);
   };

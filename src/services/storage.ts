@@ -4,6 +4,7 @@ import { Deck } from '../types/Deck';
 const CARDS_KEY = 'flashcards_cards';
 const DECKS_KEY = 'flashcards_decks';
 
+
 export const saveCards = (cards: Card[]): void => {
   localStorage.setItem(CARDS_KEY, JSON.stringify(cards));
 };
@@ -52,4 +53,15 @@ export const saveDeck = (deck: Deck): void => {
 export const getDeck = (deckId: string): Deck | undefined => {
   const decks = getDecks();
   return decks.find(deck => deck.id === deckId);
+};
+
+export const deleteDeck = (deckId: string): void => {
+  const decks = getDecks();
+  const updatedDecks = decks.filter(deck => deck.id !== deckId);
+  saveDecks(updatedDecks);
+};
+
+export const getCardsForDeck = (deckId: string): Card[] => {
+  const cards = getCards();
+  return cards.filter(card => card.deckId === deckId);
 };

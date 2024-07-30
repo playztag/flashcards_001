@@ -1,14 +1,15 @@
-export interface CardSide {
-  elements: CardElement[];
-}
+// src/types/Card.ts
 
 export interface ElementStyle {
-  fontFamily?: string;
-  fontSize?: number;
-  fontColor?: string;
   backgroundColor?: string;
   borderColor?: string;
   borderWidth?: number;
+  fontColor?: string;
+  fontSize?: number;
+  fontFamily?: string;
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
 }
 
 export interface Position {
@@ -24,15 +25,15 @@ export interface CardElement {
   content: string;
   style: ElementStyle;
   position: Position;
+  side: 'A' | 'B';  // Add this line
 }
 
 export interface Card {
   id: string;
   deckId: string;
-  sideA: {
-    elements: CardElement[];
-  };
-  sideB: {
-    elements: CardElement[];
-  };
+  elements: CardElement[];
+}
+
+export interface CardSide {
+  elements: CardElement[];
 }
