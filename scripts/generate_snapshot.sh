@@ -35,7 +35,6 @@ list_components() {
     echo " - esp32_code_generation"
 }
 
-# Function to create a tree-like structure of directories
 # Function to create a tree-like structure of directories using ASCII characters
 create_tree() {
     local dir="$1"
@@ -56,7 +55,7 @@ create_tree() {
         index=$((index + 1))
         if [ -d "$file" ]; then
             local name=$(basename "$file")
-            if [[ "$name" != "node_modules" && "$name" != ".git" && "$name" != ".vscode" && "$name" != "$output_dir" ]]; then
+            if [[ "$name" != "node_modules" && "$name" != ".git" && "$name" != ".vscode" && "$name" != "venv" && "$name" != "$output_dir" ]]; then
                 if [ $index -eq $count ]; then
                     echo "${prefix}+-- $name"
                     create_tree "$file" "$prefix    " $((depth + 1))
@@ -122,7 +121,7 @@ if [ "$generate_full" = true ]; then
     echo "Generating full project snapshot..."
     echo "Project Structure:" >> "$output_file"
     if command -v tree &> /dev/null; then
-        tree -L 3 -I "node_modules|.git|.vscode|$output_dir" --charset=ascii >> "$output_file"
+        tree -L 3 -I "node_modules|.git|.vscode|venv|$output_dir" --charset=ascii >> "$output_file"
     else
         create_tree . "" 0 >> "$output_file"
     fi
@@ -137,7 +136,7 @@ File: $file
         echo "----------------------------------------" >> "$output_file"
         lines=$(wc -l < "$file")
         total_lines=$((total_lines + lines))
-    done < <(find . -type f \( -name "*.md" -o -name "*.feature" -o -name "*.js" -o -name "*.jsx" -o -name "*.ts" -o -name "*.tsx" -o -name "*.html" -o -name "*.css" -o -name "*.scss" -o -name "*.py" -o -name "*.cpp" \) -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/$output_dir/*" -print0)
+    done < <(find . -type f \( -name "*.md" -o -name "*.feature" -o -name "*.js" -o -name "*.jsx" -o -name "*.ts" -o -name "*.tsx" -o -name "*.html" -o -name "*.css" -o -name "*.scss" -o -name "*.py" -o -name "*.cpp" \) -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/venv/*" -not -path "*/$output_dir/*" -print0)
     echo "
 Summary:
 Total lines of user-generated content: $total_lines" >> "$output_file"

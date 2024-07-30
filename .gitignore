@@ -53,3 +53,6 @@ yarn-error.log*
 
 # Project-specific
 /snapshots
+
+# virtual environment
+/venv

@@ -110,6 +110,36 @@ const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
     }
   };
 
+  const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>, id: string) => {
+    const shape = e.target;
+    updateElement(id, {
+      position: {
+        x: shape.x(),
+        y: shape.y(),
+        width: shape.width(),
+        height: shape.height(),
+      },
+    });
+  };
+
+  const handleTransformEnd = (e: Konva.KonvaEventObject<Event>, id: string) => {
+    const shape = e.target;
+    const scaleX = shape.scaleX();
+    const scaleY = shape.scaleY();
+    
+    shape.scaleX(1);
+    shape.scaleY(1);
+    
+    updateElement(id, {
+      position: {
+        x: shape.x(),
+        y: shape.y(),
+        width: shape.width() * scaleX,
+        height: shape.height() * scaleY,
+      },
+    });
+  };
+
   const renderShape = (element: CardElement) => {
     const shapeProps = {
       id: element.id,
@@ -122,34 +152,24 @@ const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
       strokeWidth: element.style.strokeWidth,
       draggable: true,
       onClick: () => selectShape(element.id),
-      onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => {
-        updateElement(element.id, {
-          position: {
-            ...element.position,
-            x: e.target.x(),
-            y: e.target.y(),
-          },
-        });
-      },
-      onTransformEnd: (e: Konva.KonvaEventObject<Event>) => {
-        const node = e.target;
-        updateElement(element.id, {
-          position: {
-            ...element.position,
-            x: node.x(),
-            y: node.y(),
-            width: node.width() * node.scaleX(),
-            height: node.height() * node.scaleY(),
-          },
-        });
-      },
+      onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => handleDragEnd(e, element.id),
+      onTransformEnd: (e: Konva.KonvaEventObject<Event>) => handleTransformEnd(e, element.id),
     };
 
     switch (element.type) {
       case 'rectangle':
         return <Rect key={element.id} {...shapeProps} />;
       case 'circle':
-        return <Circle key={element.id} {...shapeProps} radius={element.position.width / 2} />;
+        const radius = Math.max(1, Math.min(shapeProps.width, shapeProps.height) / 2);
+        return (
+          <Circle
+            key={element.id}
+            {...shapeProps}
+            width={radius * 2}
+            height={radius * 2}
+            radius={radius}
+          />
+        );
       case 'text':
         return (
           <Text
