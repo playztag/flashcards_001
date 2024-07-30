@@ -15,6 +15,7 @@ Project Structure:
 |   +-- index.html
 |   +-- manifest.json
 |   +-- robots.txt
++-- run_sc.sh
 +-- scripts
 |   +-- create_bdd.sh
 |   +-- create_files.sh
@@ -70,8 +71,9 @@ Project Structure:
 |   +-- react-app-env.d.ts
 |   +-- services
 |   |   +-- api.md
+|   |   +-- storage
 |   |   +-- storage.md
-|   |   +-- storage.ts
+|   |   +-- storage.ts.bak
 |   +-- setupTest.js
 |   +-- styles
 |   |   +-- globalStyles.md
@@ -1855,323 +1857,6 @@ const styles = {
 
 export default SideEditor;----------------------------------------
 
-File: ./src/components/cards/CardEditor.tsx
-----------------------------------------
-import React, { useState, useRef, useEffect } from 'react';
-import { Stage, Layer, Rect, Circle, Text, Transformer } from 'react-konva';
-import { HexColorPicker } from 'react-colorful';
-import styled from '@emotion/styled';
-import { CardElement, Card } from '../../types/Card';
-import Konva from 'konva';
-
-interface CardEditorProps {
-  card?: Card;
-  onSave: (card: Card) => void;
-}
-
-const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
-  const [sideAElements, setSideAElements] = useState<CardElement[]>(() => {
-    return card?.elements?.filter(el => el.side === 'A') || [];
-  });
-  const [sideBElements, setSideBElements] = useState<CardElement[]>(() => {
-    return card?.elements?.filter(el => el.side === 'B') || [];
-  });
-  const [selectedId, selectShape] = useState<string | null>(null);
-  const [tool, setTool] = useState<'select' | 'rectangle' | 'circle' | 'text'>('select');
-  const [color, setColor] = useState("#000000");
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [newShapeDef, setNewShapeDef] = useState<CardElement | null>(null);
-  const stageARef = useRef<Konva.Stage>(null);
-  const stageBRef = useRef<Konva.Stage>(null);
-  const layerARef = useRef<Konva.Layer>(null);
-  const layerBRef = useRef<Konva.Layer>(null);
-  const transformerRef = useRef<Konva.Transformer>(null);
-
-  useEffect(() => {
-    if (selectedId) {
-      const stage = selectedId.startsWith('A') ? stageARef.current : stageBRef.current;
-      const layer = selectedId.startsWith('A') ? layerARef.current : layerBRef.current;
-      const transformer = transformerRef.current;
-      
-      if (stage && layer && transformer) {
-        const selectedNode = stage.findOne('#' + selectedId);
-        if (selectedNode) {
-          transformer.nodes([selectedNode]);
-          layer.add(transformer);
-          layer.batchDraw();
-        }
-      }
-    }
-  }, [selectedId]);
-
-  const addElement = (element: CardElement) => {
-    if (element.side === 'A') {
-      setSideAElements(prev => [...prev, element]);
-    } else {
-      setSideBElements(prev => [...prev, element]);
-    }
-  };
-
-  const updateElement = (id: string, newProps: Partial<CardElement>) => {
-    const updateSide = (elements: CardElement[]) =>
-      elements.map(el => el.id === id ? { ...el, ...newProps } : el);
-
-    if (id.startsWith('A')) {
-      setSideAElements(updateSide);
-    } else {
-      setSideBElements(updateSide);
-    }
-  };
-
-  const handleStageMouseDown = (side: 'A' | 'B', e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (tool === 'select') {
-      const clickedOnEmpty = e.target === e.target.getStage();
-      if (clickedOnEmpty) {
-        selectShape(null);
-      }
-    } else {
-      setIsDrawing(true);
-      const pos = e.target.getStage()?.getPointerPosition();
-      if (pos) {
-        setNewShapeDef({
-          id: `${side}${Date.now()}`,
-          type: tool,
-          side,
-          position: { x: pos.x, y: pos.y, width: 0, height: 0 },
-          style: { fill: color, stroke: color, strokeWidth: 2 },
-          content: tool === 'text' ? 'New Text' : '',
-        });
-      }
-    }
-  };
-
-  const handleStageMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (!isDrawing || !newShapeDef) return;
-    const stage = e.target.getStage();
-    const pos = stage?.getPointerPosition();
-    if (pos) {
-      setNewShapeDef({
-        ...newShapeDef,
-        position: {
-          ...newShapeDef.position,
-          width: pos.x - newShapeDef.position.x,
-          height: pos.y - newShapeDef.position.y,
-        },
-      });
-    }
-  };
-
-  const handleStageMouseUp = () => {
-    if (isDrawing && newShapeDef) {
-      addElement(newShapeDef);
-      setIsDrawing(false);
-      setNewShapeDef(null);
-    }
-  };
-
-  const renderShape = (element: CardElement) => {
-    const shapeProps = {
-      id: element.id,
-      x: element.position.x,
-      y: element.position.y,
-      width: element.position.width,
-      height: element.position.height,
-      fill: element.style.fill,
-      stroke: element.style.stroke,
-      strokeWidth: element.style.strokeWidth,
-      draggable: true,
-      onClick: () => selectShape(element.id),
-      onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => {
-        updateElement(element.id, {
-          position: {
-            ...element.position,
-            x: e.target.x(),
-            y: e.target.y(),
-          },
-        });
-      },
-      onTransformEnd: (e: Konva.KonvaEventObject<Event>) => {
-        const node = e.target;
-        updateElement(element.id, {
-          position: {
-            ...element.position,
-            x: node.x(),
-            y: node.y(),
-            width: node.width() * node.scaleX(),
-            height: node.height() * node.scaleY(),
-          },
-        });
-      },
-    };
-
-    switch (element.type) {
-      case 'rectangle':
-        return <Rect key={element.id} {...shapeProps} />;
-      case 'circle':
-        return <Circle key={element.id} {...shapeProps} radius={element.position.width / 2} />;
-      case 'text':
-        return (
-          <Text
-            key={element.id}
-            {...shapeProps}
-            text={element.content}
-            fontSize={element.style.fontSize || 16}
-            fill={element.style.fill}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
-  const handleSave = () => {
-    const updatedCard: Card = {
-      id: card?.id || Date.now().toString(),
-      deckId: card?.deckId || '',
-      elements: [...sideAElements, ...sideBElements],
-    };
-    onSave(updatedCard);
-  };
-
-  return (
-    <EditorContainer>
-      <h2>Edit Card</h2>
-      <EditArea>
-        <ToolbarContainer>
-          <Toolbar>
-            <ToolButton onClick={() => setTool('select')} active={tool === 'select'}>Select</ToolButton>
-            <ToolButton onClick={() => setTool('rectangle')} active={tool === 'rectangle'}>Rectangle</ToolButton>
-            <ToolButton onClick={() => setTool('circle')} active={tool === 'circle'}>Circle</ToolButton>
-            <ToolButton onClick={() => setTool('text')} active={tool === 'text'}>Text</ToolButton>
-          </Toolbar>
-          <ColorPickerContainer>
-            <HexColorPicker color={color} onChange={setColor} />
-          </ColorPickerContainer>
-        </ToolbarContainer>
-        <SideBySideContainer>
-          <StageContainer>
-            <h3>Side A</h3>
-            <Stage
-              width={400}
-              height={300}
-              ref={stageARef}
-              onMouseDown={(e) => handleStageMouseDown('A', e)}
-              onMouseMove={handleStageMouseMove}
-              onMouseUp={handleStageMouseUp}
-            >
-              <Layer ref={layerARef}>
-                {sideAElements.map((element) => renderShape(element))}
-                {isDrawing && newShapeDef && newShapeDef.side === 'A' && renderShape(newShapeDef)}
-                <Transformer ref={transformerRef} />
-              </Layer>
-            </Stage>
-          </StageContainer>
-          <StageContainer>
-            <h3>Side B</h3>
-            <Stage
-              width={400}
-              height={300}
-              ref={stageBRef}
-              onMouseDown={(e) => handleStageMouseDown('B', e)}
-              onMouseMove={handleStageMouseMove}
-              onMouseUp={handleStageMouseUp}
-            >
-              <Layer ref={layerBRef}>
-                {sideBElements.map((element) => renderShape(element))}
-                {isDrawing && newShapeDef && newShapeDef.side === 'B' && renderShape(newShapeDef)}
-                <Transformer ref={transformerRef} />
-              </Layer>
-            </Stage>
-          </StageContainer>
-        </SideBySideContainer>
-        <SaveButton onClick={handleSave}>Save Card</SaveButton>
-      </EditArea>
-    </EditorContainer>
-  );
-};
-
-const EditorContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-  max-width: 900px;
-  margin: 0 auto;
-`;
-
-const EditArea = styled.div`
-  background-color: #f0f0f0;
-  border-radius: 8px;
-  padding: 20px;
-  width: 100%;
-`;
-
-const ToolbarContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-`;
-
-const Toolbar = styled.div`
-  display: flex;
-  background-color: #ffffff;
-  border-radius: 8px;
-  overflow: hidden;
-`;
-
-const ToolButton = styled.button<{ active?: boolean }>`
-  padding: 10px 20px;
-  background-color: ${props => props.active ? '#4a90e2' : 'transparent'};
-  color: ${props => props.active ? '#ffffff' : '#333333'};
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-
-  &:hover {
-    background-color: ${props => props.active ? '#3a7bd5' : '#f0f0f0'};
-  }
-`;
-
-const ColorPickerContainer = styled.div`
-  .react-colorful {
-    width: 120px;
-    height: 120px;
-  }
-`;
-
-const SideBySideContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-`;
-
-const StageContainer = styled.div`
-  border: 1px solid #cccccc;
-  border-radius: 4px;
-  overflow: hidden;
-  width: 48%;
-`;
-
-const SaveButton = styled.button`
-  padding: 10px 20px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s;
-  margin-top: 20px;
-
-  &:hover {
-    background-color: #45a049;
-  }
-`;
-
-export default CardEditor;----------------------------------------
-
 File: ./src/components/cards/__tests__/SideEditor.test.tsx
 ----------------------------------------
 import React from 'react';
@@ -2380,6 +2065,422 @@ const CardViewer: React.FC<CardViewerProps> = ({ card }) => {
 };
 
 export default CardViewer;----------------------------------------
+
+File: ./src/components/cards/CardEditor/CardEditorToolbar.tsx
+----------------------------------------
+import React from 'react';
+import { HexColorPicker } from 'react-colorful';
+import { ToolbarContainer, Toolbar, ToolButton, ColorPickerContainer } from './CardEditorStyles';
+
+interface CardEditorToolbarProps {
+  tool: 'select' | 'rectangle' | 'circle' | 'text';
+  setTool: (tool: 'select' | 'rectangle' | 'circle' | 'text') => void;
+  color: string;
+  setColor: (color: string) => void;
+}
+
+export const CardEditorToolbar: React.FC<CardEditorToolbarProps> = ({ tool, setTool, color, setColor }) => {
+  return (
+    <ToolbarContainer>
+      <Toolbar>
+        <ToolButton onClick={() => setTool('select')} active={tool === 'select'}>Select</ToolButton>
+        <ToolButton onClick={() => setTool('rectangle')} active={tool === 'rectangle'}>Rectangle</ToolButton>
+        <ToolButton onClick={() => setTool('circle')} active={tool === 'circle'}>Circle</ToolButton>
+        <ToolButton onClick={() => setTool('text')} active={tool === 'text'}>Text</ToolButton>
+      </Toolbar>
+      <ColorPickerContainer>
+        <HexColorPicker color={color} onChange={setColor} />
+      </ColorPickerContainer>
+    </ToolbarContainer>
+  );
+};----------------------------------------
+
+File: ./src/components/cards/CardEditor/CardEditorShapes.tsx
+----------------------------------------
+import React from 'react';
+import { Rect, Circle, Text } from 'react-konva';
+import { CardElement } from '../../../types/Card';
+import { getShapeProps, getCircleRadius } from './CardEditorUtils';
+
+interface ShapeProps {
+  element: CardElement;
+  selectedId: string | null;
+  selectShape: (id: string | null) => void;
+}
+
+export const RectangleShape: React.FC<ShapeProps> = ({ element, selectedId, selectShape }) => {
+  const shapeProps = getShapeProps(element, selectedId, selectShape);
+  return <Rect {...shapeProps} />;
+};
+
+export const CircleShape: React.FC<ShapeProps> = ({ element, selectedId, selectShape }) => {
+  const shapeProps = getShapeProps(element, selectedId, selectShape);
+  const radius = getCircleRadius(shapeProps.width, shapeProps.height);
+  return <Circle {...shapeProps} radius={radius} />;
+};
+
+export const TextShape: React.FC<ShapeProps> = ({ element, selectedId, selectShape }) => {
+  const shapeProps = getShapeProps(element, selectedId, selectShape);
+  return (
+    <Text
+      {...shapeProps}
+      text={element.content}
+      fontSize={element.style.fontSize || 16}
+      fill={element.style.fill}
+    />
+  );
+};
+
+export const renderShape = (
+  element: CardElement,
+  selectedId: string | null,
+  selectShape: (id: string | null) => void
+) => {
+  switch (element.type) {
+    case 'rectangle':
+      return <RectangleShape key={element.id} element={element} selectedId={selectedId} selectShape={selectShape} />;
+    case 'circle':
+      return <CircleShape key={element.id} element={element} selectedId={selectedId} selectShape={selectShape} />;
+    case 'text':
+      return <TextShape key={element.id} element={element} selectedId={selectedId} selectShape={selectShape} />;
+    default:
+      return null;
+  }
+};----------------------------------------
+
+File: ./src/components/cards/CardEditor/CardEditor.tsx
+----------------------------------------
+import React, { useState, useRef } from 'react';
+import { Card, CardElement } from '../../../types/Card';
+import { CardEditorToolbar } from './CardEditorToolbar';
+import { CardEditorStage } from './CardEditorStage';
+import { EditorContainer, EditArea, SideBySideContainer, SaveButton } from './CardEditorStyles';
+import { handleStageMouseDown, handleStageMouseMove, handleStageMouseUp } from './CardEditorUtils';
+
+interface CardEditorProps {
+  card?: Card;
+  onSave: (card: Card) => void;
+}
+
+const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
+  const [sideAElements, setSideAElements] = useState<CardElement[]>(() => {
+    return card?.elements?.filter(el => el.side === 'A') || [];
+  });
+  const [sideBElements, setSideBElements] = useState<CardElement[]>(() => {
+    return card?.elements?.filter(el => el.side === 'B') || [];
+  });
+  const [selectedId, selectShape] = useState<string | null>(null);
+  const [tool, setTool] = useState<'select' | 'rectangle' | 'circle' | 'text'>('select');
+  const [color, setColor] = useState("#000000");
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [newShapeDef, setNewShapeDef] = useState<CardElement | null>(null);
+
+  const stageARef = useRef(null);
+  const stageBRef = useRef(null);
+  const layerARef = useRef(null);
+  const layerBRef = useRef(null);
+  const transformerRef = useRef(null);
+
+  const handleSave = () => {
+    const updatedCard: Card = {
+      id: card?.id || Date.now().toString(),
+      deckId: card?.deckId || '',
+      elements: [...sideAElements, ...sideBElements],
+    };
+    onSave(updatedCard);
+  };
+
+  return (
+    <EditorContainer>
+      <h2>Edit Card</h2>
+      <EditArea>
+        <CardEditorToolbar tool={tool} setTool={setTool} color={color} setColor={setColor} />
+        <SideBySideContainer>
+          <CardEditorStage
+            side="A"
+            elements={sideAElements}
+            stageRef={stageARef}
+            layerRef={layerARef}
+            transformerRef={transformerRef}
+            selectedId={selectedId}
+            selectShape={selectShape}
+            isDrawing={isDrawing}
+            setIsDrawing={setIsDrawing}
+            newShapeDef={newShapeDef}
+            setNewShapeDef={setNewShapeDef}
+            tool={tool}
+            color={color}
+            onMouseDown={(e) => handleStageMouseDown('A', e, tool, color, setIsDrawing, setNewShapeDef)}
+            onMouseMove={(e) => handleStageMouseMove(e, isDrawing, newShapeDef, setNewShapeDef)}
+            onMouseUp={() => handleStageMouseUp(isDrawing, newShapeDef, setIsDrawing, setNewShapeDef, setSideAElements)}
+          />
+          <CardEditorStage
+            side="B"
+            elements={sideBElements}
+            stageRef={stageBRef}
+            layerRef={layerBRef}
+            transformerRef={transformerRef}
+            selectedId={selectedId}
+            selectShape={selectShape}
+            isDrawing={isDrawing}
+            setIsDrawing={setIsDrawing}
+            newShapeDef={newShapeDef}
+            setNewShapeDef={setNewShapeDef}
+            tool={tool}
+            color={color}
+            onMouseDown={(e) => handleStageMouseDown('B', e, tool, color, setIsDrawing, setNewShapeDef)}
+            onMouseMove={(e) => handleStageMouseMove(e, isDrawing, newShapeDef, setNewShapeDef)}
+            onMouseUp={() => handleStageMouseUp(isDrawing, newShapeDef, setIsDrawing, setNewShapeDef, setSideBElements)}
+          />
+        </SideBySideContainer>
+        <SaveButton onClick={handleSave}>Save Card</SaveButton>
+      </EditArea>
+    </EditorContainer>
+  );
+};
+
+export default CardEditor;----------------------------------------
+
+File: ./src/components/cards/CardEditor/CardEditorStage.tsx
+----------------------------------------
+import React from 'react';
+import { Stage, Layer, Rect, Circle, Text, Transformer } from 'react-konva';
+import { CardElement } from '../../../types/Card';
+import { StageContainer } from './CardEditorStyles';
+import { renderShape } from './CardEditorShapes';
+
+interface CardEditorStageProps {
+  side: 'A' | 'B';
+  elements: CardElement[];
+  stageRef: React.RefObject<any>;
+  layerRef: React.RefObject<any>;
+  transformerRef: React.RefObject<any>;
+  selectedId: string | null;
+  selectShape: (id: string | null) => void;
+  isDrawing: boolean;
+  setIsDrawing: (isDrawing: boolean) => void;
+  newShapeDef: CardElement | null;
+  setNewShapeDef: (shapeDef: CardElement | null) => void;
+  tool: 'select' | 'rectangle' | 'circle' | 'text';
+  color: string;
+  onMouseDown: (e: any) => void;
+  onMouseMove: (e: any) => void;
+  onMouseUp: () => void;
+}
+
+export const CardEditorStage: React.FC<CardEditorStageProps> = ({
+  side,
+  elements,
+  stageRef,
+  layerRef,
+  transformerRef,
+  selectedId,
+  selectShape,
+  isDrawing,
+  newShapeDef,
+  tool,
+  color,
+  onMouseDown,
+  onMouseMove,
+  onMouseUp,
+}) => {
+  return (
+    <StageContainer>
+      <h3>Side {side}</h3>
+      <Stage
+        width={400}
+        height={300}
+        ref={stageRef}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+      >
+        <Layer ref={layerRef}>
+          {elements.map((element) => renderShape(element, selectedId, selectShape))}
+          {isDrawing && newShapeDef && newShapeDef.side === side && renderShape(newShapeDef, selectedId, selectShape)}
+          <Transformer ref={transformerRef} />
+        </Layer>
+      </Stage>
+    </StageContainer>
+  );
+};----------------------------------------
+
+File: ./src/components/cards/CardEditor/CardEditorUtils.ts
+----------------------------------------
+import { KonvaEventObject } from 'konva/lib/Node';
+import { CardElement } from '../../../types/Card';
+
+export const handleStageMouseDown = (
+  side: 'A' | 'B',
+  e: KonvaEventObject<MouseEvent>,
+  tool: 'select' | 'rectangle' | 'circle' | 'text',
+  color: string,
+  setIsDrawing: (isDrawing: boolean) => void,
+  setNewShapeDef: (shapeDef: CardElement | null) => void,
+  selectShape: (id: string | null) => void
+) => {
+  if (tool === 'select') {
+    const clickedOnEmpty = e.target === e.target.getStage();
+    if (clickedOnEmpty) {
+      selectShape(null);
+    }
+  } else {
+    setIsDrawing(true);
+    const pos = e.target.getStage()?.getPointerPosition();
+    if (pos) {
+      setNewShapeDef({
+        id: `${side}${Date.now()}`,
+        type: tool,
+        side,
+        position: { x: pos.x, y: pos.y, width: 0, height: 0 },
+        style: { fill: color, stroke: color, strokeWidth: 2 },
+        content: tool === 'text' ? 'New Text' : '',
+      });
+    }
+  }
+};
+
+export const handleStageMouseMove = (
+  e: KonvaEventObject<MouseEvent>,
+  isDrawing: boolean,
+  newShapeDef: CardElement | null,
+  setNewShapeDef: (shapeDef: CardElement | null) => void
+) => {
+  if (!isDrawing || !newShapeDef) return;
+  const stage = e.target.getStage();
+  const pos = stage?.getPointerPosition();
+  if (pos) {
+    setNewShapeDef({
+      ...newShapeDef,
+      position: {
+        ...newShapeDef.position,
+        width: pos.x - newShapeDef.position.x,
+        height: pos.y - newShapeDef.position.y,
+      },
+    });
+  }
+};
+
+export const handleStageMouseUp = (
+  isDrawing: boolean,
+  newShapeDef: CardElement | null,
+  setIsDrawing: (isDrawing: boolean) => void,
+  setNewShapeDef: (shapeDef: CardElement | null) => void,
+  setElements: React.Dispatch<React.SetStateAction<CardElement[]>>
+) => {
+  if (isDrawing && newShapeDef) {
+    setElements(prevElements => [...prevElements, newShapeDef]);
+    setIsDrawing(false);
+    setNewShapeDef(null);
+  }
+};
+
+export const getShapeProps = (
+  element: CardElement,
+  selectedId: string | null,
+  selectShape: (id: string | null) => void
+) => {
+  return {
+    id: element.id,
+    x: element.position.x,
+    y: element.position.y,
+    width: element.position.width,
+    height: element.position.height,
+    fill: element.style.fill,
+    stroke: element.style.stroke,
+    strokeWidth: element.style.strokeWidth,
+    draggable: true,
+    onClick: () => selectShape(element.id),
+  };
+};
+
+export const getCircleRadius = (width: number, height: number) => {
+  return Math.max(1, Math.min(width, height) / 2);
+};----------------------------------------
+
+File: ./src/components/cards/CardEditor/CardEditorStyles.ts
+----------------------------------------
+import styled from '@emotion/styled';
+
+export const EditorContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+`;
+
+export const EditArea = styled.div`
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  padding: 20px;
+  width: 100%;
+`;
+
+export const ToolbarContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+`;
+
+export const Toolbar = styled.div`
+  display: flex;
+  background-color: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+`;
+
+export const ToolButton = styled.button<{ active?: boolean }>`
+  padding: 10px 20px;
+  background-color: ${props => props.active ? '#4a90e2' : 'transparent'};
+  color: ${props => props.active ? '#ffffff' : '#333333'};
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: ${props => props.active ? '#3a7bd5' : '#f0f0f0'};
+  }
+`;
+
+export const ColorPickerContainer = styled.div`
+  .react-colorful {
+    width: 120px;
+    height: 120px;
+  }
+`;
+
+export const SideBySideContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+`;
+
+export const StageContainer = styled.div`
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  overflow: hidden;
+  width: 48%;
+`;
+
+export const SaveButton = styled.button`
+  padding: 10px 20px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+  margin-top: 20px;
+
+  &:hover {
+    background-color: #45a049;
+  }
+`;----------------------------------------
 
 File: ./src/components/decks/DeckItem.tsx
 ----------------------------------------
@@ -3022,24 +3123,38 @@ File: ./src/pages/Home.tsx
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getCards } from '../services/storage';
-import { Card } from '../types/Card';
+import { Card, CardElement } from '../types/Card';
 
 const Home: React.FC = () => {
   const [cards, setCards] = useState<Card[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchedCards = getCards();
-    setCards(fetchedCards);
+    try {
+      const fetchedCards = getCards();
+      setCards(fetchedCards);
+    } catch (err) {
+      setError('Failed to load cards. Please try again later.');
+      console.error('Error fetching cards:', err);
+    }
   }, []);
 
-  const getCardTitle = (card: Card) => {
-    const textElement = card.elements.find(element => element.type === 'text');
-    return textElement?.content || 'Untitled Card';
+  const getCardTitle = (card: Card): string => {
+    if (Array.isArray(card.elements)) {
+      const textElement = card.elements.find((element: CardElement) => element.type === 'text');
+      return textElement?.content || 'Untitled Card';
+    } else {
+      return 'Untitled Card';
+    }
   };
+
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   return (
     <div>
-      <h1>Flash Cards</h1>
+      <h1>Your Flash Cards</h1>
       {cards.length === 0 ? (
         <p>No cards yet. <Link to="/editor">Create your first card!</Link></p>
       ) : (
@@ -3064,7 +3179,7 @@ File: ./src/pages/Editor.tsx
 ----------------------------------------
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import CardEditor from '../components/cards/CardEditor';
+import CardEditor from '../components/cards/CardEditor/CardEditor';
 import { Card } from '../types/Card';
 import { getCard, saveCard } from '../services/storage';
 
@@ -3318,39 +3433,11 @@ class ApiService {
 - [ ] Write unit tests
 - [ ] Document API endpoints and expected responses----------------------------------------
 
-File: ./src/services/storage.ts
+File: ./src/services/storage/deckStorage.ts
 ----------------------------------------
-import { Card } from '../types/Card';
-import { Deck } from '../types/Deck';
+import { Deck } from '../../types/Deck';
 
-const CARDS_KEY = 'flashcards_cards';
 const DECKS_KEY = 'flashcards_decks';
-
-
-export const saveCards = (cards: Card[]): void => {
-  localStorage.setItem(CARDS_KEY, JSON.stringify(cards));
-};
-
-export const getCards = (): Card[] => {
-  const cards = localStorage.getItem(CARDS_KEY);
-  return cards ? JSON.parse(cards) : [];
-};
-
-export const saveCard = (card: Card): void => {
-  const cards = getCards();
-  const index = cards.findIndex(c => c.id === card.id);
-  if (index !== -1) {
-    cards[index] = card;
-  } else {
-    cards.push(card);
-  }
-  saveCards(cards);
-};
-
-export const getCard = (cardId: string): Card | undefined => {
-  const cards = getCards();
-  return cards.find(card => card.id === cardId);
-};
 
 export const saveDecks = (decks: Deck[]): void => {
   localStorage.setItem(DECKS_KEY, JSON.stringify(decks));
@@ -3381,13 +3468,54 @@ export const deleteDeck = (deckId: string): void => {
   const decks = getDecks();
   const updatedDecks = decks.filter(deck => deck.id !== deckId);
   saveDecks(updatedDecks);
+};----------------------------------------
+
+File: ./src/services/storage/cardStorage.ts
+----------------------------------------
+import { Card } from '../../types/Card';
+
+const CARDS_KEY = 'flashcards_cards';
+
+export const saveCards = (cards: Card[]): void => {
+  localStorage.setItem(CARDS_KEY, JSON.stringify(cards));
+};
+
+export const getCards = (): Card[] => {
+  const cards = localStorage.getItem(CARDS_KEY);
+  return cards ? JSON.parse(cards) : [];
+};
+
+export const saveCard = (card: Card): void => {
+  const cards = getCards();
+  const index = cards.findIndex(c => c.id === card.id);
+  if (index !== -1) {
+    cards[index] = card;
+  } else {
+    cards.push(card);
+  }
+  saveCards(cards);
+};
+
+export const getCard = (cardId: string): Card | undefined => {
+  const cards = getCards();
+  return cards.find(card => card.id === cardId);
+};
+
+export const deleteCard = (cardId: string): void => {
+  const cards = getCards();
+  const updatedCards = cards.filter(card => card.id !== cardId);
+  saveCards(updatedCards);
 };
 
 export const getCardsForDeck = (deckId: string): Card[] => {
   const cards = getCards();
   return cards.filter(card => card.deckId === deckId);
-};
+};----------------------------------------
+
+File: ./src/services/storage/index.ts
 ----------------------------------------
+export * from './cardStorage';
+export * from './deckStorage';----------------------------------------
 
 Summary:
-Total lines of user-generated content: 2969
+Total lines of user-generated content: 3067

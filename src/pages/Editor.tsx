@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import CardEditor from '../components/cards/CardEditor';
+import CardEditor from '../components/cards/CardEditor/CardEditor';
 import { Card } from '../types/Card';
 import { getCard, saveCard } from '../services/storage';
 
