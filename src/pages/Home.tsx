@@ -7,27 +7,22 @@ const Home: React.FC = () => {
   const [cards, setCards] = useState<Card[]>([]);
 
   useEffect(() => {
-    console.log('Home: Component mounted');
     const fetchedCards = getCards();
-    console.log('Home: Fetched cards', fetchedCards);
     setCards(fetchedCards);
   }, []);
 
-  console.log('Home: Rendering');
-
   return (
     <div>
-      <h2>Your Flash Cards</h2>
-      <p style={{ color: 'red' }}>Debug: Home component rendered. Card count: {cards.length}</p>
+      <h1>Flash Cards</h1>
       {cards.length === 0 ? (
-        <p>You don't have any cards yet. <Link to="/editor">Create your first card!</Link></p>
+        <p>No cards yet. <Link to="/editor">Create your first card!</Link></p>
       ) : (
         <ul>
-          {cards.map((card) => (
+          {cards.map(card => (
             <li key={card.id}>
-              <strong>Front:</strong> {card.sideA.elements[0]?.content}
-              <br />
-              <strong>Back:</strong> {card.sideB.elements[0]?.content}
+              <Link to={`/editor/${card.id}`}>
+                {card.sideA.elements[0]?.content || 'Untitled Card'}
+              </Link>
             </li>
           ))}
         </ul>
