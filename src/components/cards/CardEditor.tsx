@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Stage, Layer, Rect, Circle, Text } from 'react-konva';
-import { Card, CardElement } from '../../types/Card';
+import React, { useState, useRef, useEffect } from 'react';
+import { Stage, Layer, Rect, Circle, Text, Transformer } from 'react-konva';
+import Konva from 'konva';
+import { HexColorPicker } from 'react-colorful';
 import styled from '@emotion/styled';
+import { CardElement, Card } from '../../types/Card';
 
 interface CardEditorProps {
   card?: Card;
@@ -9,126 +11,181 @@ interface CardEditorProps {
 }
 
 const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
-  const [sideAElements, setSideAElements] = useState<CardElement[]>(card?.sideA.elements || []);
-  const [sideBElements, setSideBElements] = useState<CardElement[]>(card?.sideB.elements || []);
-  const [activeSide, setActiveSide] = useState<'A' | 'B'>('A');
-  const [selectedTool, setSelectedTool] = useState<'select' | 'rectangle' | 'circle' | 'text'>('select');
+  const [elements, setElements] = useState<CardElement[]>(card?.sideA.elements || []);
+  const [selectedId, selectShape] = useState<string | null>(null);
+  const [tool, setTool] = useState<'select' | 'rectangle' | 'circle' | 'text'>('select');
+  const [color, setColor] = useState("#000000");
+  const [history, setHistory] = useState<CardElement[][]>([]);
+  const [historyStep, setHistoryStep] = useState(0);
+  const stageRef = useRef<Konva.Stage>(null);
+  const layerRef = useRef<Konva.Layer>(null);
+  const transformerRef = useRef<Konva.Transformer>(null);
 
-  const handleAddShape = (type: 'rectangle' | 'circle') => {
+  useEffect(() => {
+    if (selectedId) {
+      const stage = stageRef.current;
+      const layer = layerRef.current;
+      const transformer = transformerRef.current;
+      
+      if (stage && layer && transformer) {
+        const selectedNode = stage.findOne('#' + selectedId);
+        if (selectedNode) {
+          transformer.nodes([selectedNode]);
+          layer.add(transformer);
+          layer.batchDraw();
+        }
+      }
+    }
+  }, [selectedId]);
+
+  const addElement = (type: 'rectangle' | 'circle' | 'text') => {
     const newElement: CardElement = {
       id: Date.now().toString(),
       type,
-      content: '',
-      style: { backgroundColor: '#ffffff', borderColor: '#000000', borderWidth: 2 },
+      content: type === 'text' ? 'New Text' : '',
+      style: { backgroundColor: color, borderColor: color, borderWidth: 2, fontColor: color },
       position: { x: 50, y: 50, width: 100, height: 100 },
     };
+    const newElements = [...elements, newElement];
+    setElements(newElements);
+    addToHistory(newElements);
+  };
 
-    if (activeSide === 'A') {
-      setSideAElements([...sideAElements, newElement]);
-    } else {
-      setSideBElements([...sideBElements, newElement]);
+  const updateElement = (id: string, newProps: Partial<CardElement>) => {
+    const newElements = elements.map(el => 
+      el.id === id ? { ...el, ...newProps } : el
+    );
+    setElements(newElements);
+    addToHistory(newElements);
+  };
+
+  const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    const clickedOnEmpty = e.target === e.target.getStage();
+    if (clickedOnEmpty) {
+      selectShape(null);
+      if (tool !== 'select') {
+        addElement(tool);
+        setTool('select');
+      }
     }
   };
 
-  const handleAddText = () => {
-    const newElement: CardElement = {
-      id: Date.now().toString(),
-      type: 'text',
-      content: 'New Text',
-      style: { fontFamily: 'Arial', fontSize: 16, fontColor: '#000000' },
-      position: { x: 50, y: 50, width: 100, height: 20 },
-    };
+  const addToHistory = (newElements: CardElement[]) => {
+    const newHistory = history.slice(0, historyStep + 1);
+    newHistory.push(newElements);
+    setHistory(newHistory);
+    setHistoryStep(newHistory.length - 1);
+  };
 
-    if (activeSide === 'A') {
-      setSideAElements([...sideAElements, newElement]);
-    } else {
-      setSideBElements([...sideBElements, newElement]);
+  const undo = () => {
+    if (historyStep > 0) {
+      setHistoryStep(historyStep - 1);
+      setElements(history[historyStep - 1]);
     }
   };
 
-  const handleSave = () => {
-    const updatedCard: Card = {
-      id: card?.id || Date.now().toString(),
-      deckId: card?.deckId || '',
-      sideA: { elements: sideAElements },
-      sideB: { elements: sideBElements },
-    };
-    onSave(updatedCard);
-  };
-
-  const handleToolSelect = (tool: 'select' | 'rectangle' | 'circle' | 'text') => {
-    setSelectedTool(tool);
-    if (tool === 'rectangle' || tool === 'circle') {
-      handleAddShape(tool);
-    } else if (tool === 'text') {
-      handleAddText();
+  const redo = () => {
+    if (historyStep < history.length - 1) {
+      setHistoryStep(historyStep + 1);
+      setElements(history[historyStep + 1]);
     }
   };
 
   const renderShape = (element: CardElement) => {
+    const shapeProps = {
+      id: element.id,
+      x: element.position.x,
+      y: element.position.y,
+      width: element.position.width,
+      height: element.position.height,
+      fill: element.style.backgroundColor,
+      stroke: element.style.borderColor,
+      strokeWidth: element.style.borderWidth,
+      draggable: true,
+      onClick: () => selectShape(element.id),
+      onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => {
+        updateElement(element.id, {
+          position: {
+            ...element.position,
+            x: e.target.x(),
+            y: e.target.y(),
+          },
+        });
+      },
+      onTransformEnd: (e: Konva.KonvaEventObject<Event>) => {
+        const node = e.target;
+        updateElement(element.id, {
+          position: {
+            ...element.position,
+            x: node.x(),
+            y: node.y(),
+            width: node.width() * node.scaleX(),
+            height: node.height() * node.scaleY(),
+          },
+        });
+      },
+    };
+
     switch (element.type) {
       case 'rectangle':
-        return (
-          <Rect
-            key={element.id}
-            x={element.position.x}
-            y={element.position.y}
-            width={element.position.width}
-            height={element.position.height}
-            fill={element.style.backgroundColor}
-            stroke={element.style.borderColor}
-            strokeWidth={element.style.borderWidth}
-          />
-        );
+        return <Rect key={element.id} {...shapeProps} />;
       case 'circle':
-        return (
-          <Circle
-            key={element.id}
-            x={element.position.x + element.position.width / 2}
-            y={element.position.y + element.position.height / 2}
-            radius={Math.min(element.position.width, element.position.height) / 2}
-            fill={element.style.backgroundColor}
-            stroke={element.style.borderColor}
-            strokeWidth={element.style.borderWidth}
-          />
-        );
+        return <Circle key={element.id} {...shapeProps} radius={element.position.width / 2} />;
       case 'text':
         return (
           <Text
             key={element.id}
-            x={element.position.x}
-            y={element.position.y}
+            {...shapeProps}
             text={element.content}
-            fontSize={element.style.fontSize}
-            fontFamily={element.style.fontFamily}
+            fontSize={element.style.fontSize || 16}
             fill={element.style.fontColor}
           />
         );
+      default:
+        return null;
+    }
+  };
+
+  const handleSave = () => {
+    if (card) {
+      onSave({
+        ...card,
+        sideA: { elements }
+      });
+    } else {
+      onSave({
+        id: Date.now().toString(),
+        deckId: '',
+        sideA: { elements },
+        sideB: { elements: [] }
+      });
     }
   };
 
   return (
     <EditorContainer>
       <Toolbar>
-        <ToolButton onClick={() => handleToolSelect('select')} active={selectedTool === 'select'}>Select</ToolButton>
-        <ToolButton onClick={() => handleToolSelect('rectangle')} active={selectedTool === 'rectangle'}>Rectangle</ToolButton>
-        <ToolButton onClick={() => handleToolSelect('circle')} active={selectedTool === 'circle'}>Circle</ToolButton>
-        <ToolButton onClick={() => handleToolSelect('text')} active={selectedTool === 'text'}>Text</ToolButton>
+        <ToolButton onClick={() => setTool('select')} active={tool === 'select'}>Select</ToolButton>
+        <ToolButton onClick={() => setTool('rectangle')} active={tool === 'rectangle'}>Rectangle</ToolButton>
+        <ToolButton onClick={() => setTool('circle')} active={tool === 'circle'}>Circle</ToolButton>
+        <ToolButton onClick={() => setTool('text')} active={tool === 'text'}>Text</ToolButton>
+        <ToolButton onClick={undo} disabled={historyStep === 0}>Undo</ToolButton>
+        <ToolButton onClick={redo} disabled={historyStep === history.length - 1}>Redo</ToolButton>
       </Toolbar>
-      <CanvasContainer>
-        <SideSelector>
-          <SideButton onClick={() => setActiveSide('A')} active={activeSide === 'A'}>Side A</SideButton>
-          <SideButton onClick={() => setActiveSide('B')} active={activeSide === 'B'}>Side B</SideButton>
-        </SideSelector>
-        <Stage width={400} height={600}>
-          <Layer>
-            {activeSide === 'A'
-              ? sideAElements.map(renderShape)
-              : sideBElements.map(renderShape)
-            }
-          </Layer>
-        </Stage>
-      </CanvasContainer>
+      <ColorPickerContainer>
+        <HexColorPicker color={color} onChange={setColor} />
+      </ColorPickerContainer>
+      <Stage
+        width={400}
+        height={600}
+        ref={stageRef}
+        onClick={handleStageClick}
+      >
+        <Layer ref={layerRef}>
+          {elements.map(renderShape)}
+          <Transformer ref={transformerRef} />
+        </Layer>
+      </Stage>
       <SaveButton onClick={handleSave}>Save Card</SaveButton>
     </EditorContainer>
   );
@@ -147,7 +204,7 @@ const Toolbar = styled.div`
   margin-bottom: 20px;
 `;
 
-const ToolButton = styled.button<{ active: boolean }>`
+const ToolButton = styled.button<{ active?: boolean }>`
   margin: 0 5px;
   padding: 5px 10px;
   background-color: ${props => props.active ? '#4a90e2' : '#f0f0f0'};
@@ -159,33 +216,15 @@ const ToolButton = styled.button<{ active: boolean }>`
   &:hover {
     background-color: ${props => props.active ? '#3a7bd5' : '#e0e0e0'};
   }
-`;
 
-const CanvasContainer = styled.div`
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  overflow: hidden;
-`;
-
-const SideSelector = styled.div`
-  display: flex;
-  justify-content: center;
-  background-color: #f0f0f0;
-  padding: 10px;
-`;
-
-const SideButton = styled.button<{ active: boolean }>`
-  margin: 0 5px;
-  padding: 5px 10px;
-  background-color: ${props => props.active ? '#4a90e2' : '#f0f0f0'};
-  color: ${props => props.active ? '#ffffff' : '#000000'};
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: ${props => props.active ? '#3a7bd5' : '#e0e0e0'};
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
+`;
+
+const ColorPickerContainer = styled.div`
+  margin-bottom: 20px;
 `;
 
 const SaveButton = styled.button`

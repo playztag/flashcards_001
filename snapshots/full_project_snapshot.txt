@@ -814,7 +814,7 @@ console.log('Index.tsx: Script ended');----------------------------------------
 File: ./src/App.tsx
 ----------------------------------------
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import Editor from './pages/Editor';
 import DeckManagement from './pages/DeckManagement';
@@ -824,20 +824,18 @@ import './App.css';
 
 const App: React.FC = () => {
   return (
-    <Router>
-      <div className="App">
-        <Header />
-        <main>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/editor" element={<Editor />} />
-            <Route path="/editor/:cardId" element={<Editor />} />
-            <Route path="/decks" element={<DeckManagement />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </Router>
+    <div className="App">
+      <Header />
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/editor" element={<Editor />} />
+          <Route path="/editor/:cardId" element={<Editor />} />
+          <Route path="/decks" element={<DeckManagement />} />
+        </Routes>
+      </main>
+      <Footer />
+    </div>
   );
 };
 
@@ -1819,7 +1817,6 @@ File: ./src/components/cards/CardEditor.tsx
 import React, { useState } from 'react';
 import { Stage, Layer, Rect, Circle, Text } from 'react-konva';
 import { Card, CardElement } from '../../types/Card';
-import { Shape } from '../../types/Shape';
 import styled from '@emotion/styled';
 
 interface CardEditorProps {
@@ -1875,6 +1872,15 @@ const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
     onSave(updatedCard);
   };
 
+  const handleToolSelect = (tool: 'select' | 'rectangle' | 'circle' | 'text') => {
+    setSelectedTool(tool);
+    if (tool === 'rectangle' || tool === 'circle') {
+      handleAddShape(tool);
+    } else if (tool === 'text') {
+      handleAddText();
+    }
+  };
+
   const renderShape = (element: CardElement) => {
     switch (element.type) {
       case 'rectangle':
@@ -1920,10 +1926,10 @@ const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
   return (
     <EditorContainer>
       <Toolbar>
-        <ToolButton onClick={() => setSelectedTool('select')}>Select</ToolButton>
-        <ToolButton onClick={() => setSelectedTool('rectangle')}>Rectangle</ToolButton>
-        <ToolButton onClick={() => setSelectedTool('circle')}>Circle</ToolButton>
-        <ToolButton onClick={() => setSelectedTool('text')}>Text</ToolButton>
+        <ToolButton onClick={() => handleToolSelect('select')} active={selectedTool === 'select'}>Select</ToolButton>
+        <ToolButton onClick={() => handleToolSelect('rectangle')} active={selectedTool === 'rectangle'}>Rectangle</ToolButton>
+        <ToolButton onClick={() => handleToolSelect('circle')} active={selectedTool === 'circle'}>Circle</ToolButton>
+        <ToolButton onClick={() => handleToolSelect('text')} active={selectedTool === 'text'}>Text</ToolButton>
       </Toolbar>
       <CanvasContainer>
         <SideSelector>
@@ -1957,16 +1963,17 @@ const Toolbar = styled.div`
   margin-bottom: 20px;
 `;
 
-const ToolButton = styled.button`
+const ToolButton = styled.button<{ active: boolean }>`
   margin: 0 5px;
   padding: 5px 10px;
-  background-color: #f0f0f0;
+  background-color: ${props => props.active ? '#4a90e2' : '#f0f0f0'};
+  color: ${props => props.active ? '#ffffff' : '#000000'};
   border: 1px solid #ccc;
   border-radius: 4px;
   cursor: pointer;
 
   &:hover {
-    background-color: #e0e0e0;
+    background-color: ${props => props.active ? '#3a7bd5' : '#e0e0e0'};
   }
 `;
 
@@ -3051,4 +3058,4 @@ export const getDecks = (): Deck[] => {
 };----------------------------------------
 
 Summary:
-Total lines of user-generated content: 2648
+Total lines of user-generated content: 2655
