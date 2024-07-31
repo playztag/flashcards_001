@@ -1,5 +1,3 @@
-// src/types/Card.ts
-
 export interface ElementStyle {
   backgroundColor?: string;
   borderColor?: string;
@@ -21,7 +19,7 @@ export interface Position {
 
 export interface CardElement {
   id: string;
-  type: 'text' | 'rectangle' | 'circle' | 'ellipse';  // Added 'ellipse' here
+  type: 'text' | 'rectangle' | 'circle' | 'ellipse' | 'line' | 'triangle';
   content: string;
   style: ElementStyle;
   position: Position;

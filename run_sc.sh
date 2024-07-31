@@ -1,23 +1,33 @@
 #!/bin/bash
 
-# Create new directories
-mkdir -p src/components/cards/CardEditor
-mkdir -p src/services/storage
+# Create the main CardEditor directory
+mkdir -p src/components/cards/CardEditor/shapes src/components/cards/CardEditor/utils src/components/cards/CardEditor/styles
 
-# Create new files for CardEditor
+# Create files in the main CardEditor directory
+touch src/components/cards/CardEditor/index.ts
 touch src/components/cards/CardEditor/CardEditor.tsx
-touch src/components/cards/CardEditor/CardEditorStyles.ts
-touch src/components/cards/CardEditor/CardEditorToolbar.tsx
 touch src/components/cards/CardEditor/CardEditorStage.tsx
-touch src/components/cards/CardEditor/CardEditorUtils.ts
+touch src/components/cards/CardEditor/CardEditorToolbar.tsx
+touch src/components/cards/CardEditor/TransformerHandler.tsx
 
-# Create new files for storage
-touch src/services/storage/index.ts
-touch src/services/storage/cardStorage.ts
-touch src/services/storage/deckStorage.ts
+# Create files in the shapes directory
+touch src/components/cards/CardEditor/shapes/index.ts
+touch src/components/cards/CardEditor/shapes/ShapeTypes.ts
+touch src/components/cards/CardEditor/shapes/RectangleShape.tsx
+touch src/components/cards/CardEditor/shapes/CircleShape.tsx
+touch src/components/cards/CardEditor/shapes/EllipseShape.tsx
+touch src/components/cards/CardEditor/shapes/TextShape.tsx
+touch src/components/cards/CardEditor/shapes/LineShape.tsx
+touch src/components/cards/CardEditor/shapes/TriangleShape.tsx
+touch src/components/cards/CardEditor/shapes/renderShape.ts
 
-# Move original files to backup
-mv src/components/cards/CardEditor.tsx src/components/cards/CardEditor.tsx.bak
-mv src/services/storage.ts src/services/storage.ts.bak
+# Create files in the utils directory
+touch src/components/cards/CardEditor/utils/index.ts
+touch src/components/cards/CardEditor/utils/mouseEventHandlers.ts
+touch src/components/cards/CardEditor/utils/shapeUtils.ts
 
-echo "Files created successfully. Please manually move the code to the appropriate new files."
+# Create files in the styles directory
+touch src/components/cards/CardEditor/styles/index.ts
+touch src/components/cards/CardEditor/styles/CardEditorStyles.ts
+
+echo "CardEditor directory structure and files have been created."

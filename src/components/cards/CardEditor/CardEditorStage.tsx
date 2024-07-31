@@ -1,27 +1,26 @@
-import React from 'react';
-import { Stage, Layer, Transformer } from 'react-konva';
+import React, { ReactNode } from 'react';
+import { Stage, Layer } from 'react-konva';
 import { CardElement } from '../../../types/Card';
-import { StageContainer } from './CardEditorStyles';
-import { renderShape } from './CardEditorShapes';
+import { StageContainer } from './styles';
+import { renderShape } from './shapes';
 
 interface CardEditorStageProps {
   side: 'A' | 'B';
   elements: CardElement[];
   stageRef: React.RefObject<any>;
   layerRef: React.RefObject<any>;
-  transformerRef: React.RefObject<any>;
   selectedId: string | null;
   selectShape: (id: string | null) => void;
   isDrawing: boolean;
-  isDragging: boolean;
   setIsDrawing: (isDrawing: boolean) => void;
   newShapeDef: CardElement | null;
   setNewShapeDef: (shapeDef: CardElement | null) => void;
-  tool: 'select' | 'rectangle' | 'circle' | 'text';
+  tool: 'select' | 'rectangle' | 'circle' | 'text' | 'line' | 'triangle';
   color: string;
   onMouseDown: (e: any) => void;
   onMouseMove: (e: any) => void;
   onMouseUp: () => void;
+  children?: ReactNode;
 }
 
 export const CardEditorStage: React.FC<CardEditorStageProps> = ({
@@ -29,17 +28,14 @@ export const CardEditorStage: React.FC<CardEditorStageProps> = ({
   elements,
   stageRef,
   layerRef,
-  transformerRef,
   selectedId,
   selectShape,
   isDrawing,
-  isDragging,
   newShapeDef,
-  tool,
-  color,
   onMouseDown,
   onMouseMove,
   onMouseUp,
+  children,
 }) => {
   return (
     <StageContainer>
@@ -55,16 +51,7 @@ export const CardEditorStage: React.FC<CardEditorStageProps> = ({
         <Layer ref={layerRef}>
           {elements.map((element) => renderShape(element, selectedId, selectShape))}
           {isDrawing && newShapeDef && newShapeDef.side === side && renderShape(newShapeDef, selectedId, selectShape)}
-          <Transformer
-            ref={transformerRef}
-            boundBoxFunc={(oldBox, newBox) => {
-              // limit resize
-              if (newBox.width < 5 || newBox.height < 5) {
-                return oldBox;
-              }
-              return newBox;
-            }}
-          />
+          {children}
         </Layer>
       </Stage>
     </StageContainer>
