@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Card, CardElement } from '../../../types/Card';
-import { CardEditorToolbar } from './CardEditorToolbar';
+import { CardEditorToolbar } from './/CardEditorToolbar';
 import { CardEditorStage } from './CardEditorStage';
 import { EditorContainer, EditArea, SideBySideContainer, SaveButton } from './CardEditorStyles';
 import { handleStageMouseDown, handleStageMouseMove, handleStageMouseUp } from './CardEditorUtils';

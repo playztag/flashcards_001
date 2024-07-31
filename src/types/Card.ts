@@ -21,11 +21,11 @@ export interface Position {
 
 export interface CardElement {
   id: string;
-  type: 'text' | 'rectangle' | 'circle';
+  type: 'text' | 'rectangle' | 'circle' | 'ellipse';  // Added 'ellipse' here
   content: string;
   style: ElementStyle;
   position: Position;
-  side: 'A' | 'B';  // Add this line
+  side: 'A' | 'B';
 }
 
 export interface Card {

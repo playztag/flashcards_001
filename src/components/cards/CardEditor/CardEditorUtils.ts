@@ -4,7 +4,7 @@ import { CardElement } from '../../../types/Card';
 export const handleStageMouseDown = (
   side: 'A' | 'B',
   e: KonvaEventObject<MouseEvent>,
-  tool: 'select' | 'rectangle' | 'circle' | 'text',
+  tool: 'select' | 'rectangle' | 'circle' | 'ellipse' | 'text',
   color: string,
   setIsDrawing: (isDrawing: boolean) => void,
   setNewShapeDef: (shapeDef: CardElement | null) => void,
@@ -85,6 +85,9 @@ export const getShapeProps = (
   };
 };
 
-export const getCircleRadius = (width: number, height: number) => {
-  return Math.max(1, Math.min(width, height) / 2);
+export const getEllipseRadii = (width: number, height: number) => {
+  return {
+    radiusX: Math.abs(width) / 2,
+    radiusY: Math.abs(height) / 2
+  };
 };

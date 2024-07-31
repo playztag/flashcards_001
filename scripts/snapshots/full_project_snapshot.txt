@@ -1,0 +1,11 @@
+Project Structure:
++-- create_bdd.sh
++-- create_files.sh
++-- focused_snapshot.sh
++-- gen_proj.sh
++-- generate_snapshot.sh
+
+File Contents:
+
+Summary:
+Total lines of user-generated content: 0
