@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stage, Layer, Rect, Circle, Text, Transformer } from 'react-konva';
+import { Stage, Layer, Transformer } from 'react-konva';
 import { CardElement } from '../../../types/Card';
 import { StageContainer } from './CardEditorStyles';
 import { renderShape } from './CardEditorShapes';
@@ -13,6 +13,7 @@ interface CardEditorStageProps {
   selectedId: string | null;
   selectShape: (id: string | null) => void;
   isDrawing: boolean;
+  isDragging: boolean;
   setIsDrawing: (isDrawing: boolean) => void;
   newShapeDef: CardElement | null;
   setNewShapeDef: (shapeDef: CardElement | null) => void;
@@ -32,6 +33,7 @@ export const CardEditorStage: React.FC<CardEditorStageProps> = ({
   selectedId,
   selectShape,
   isDrawing,
+  isDragging,
   newShapeDef,
   tool,
   color,
@@ -53,7 +55,16 @@ export const CardEditorStage: React.FC<CardEditorStageProps> = ({
         <Layer ref={layerRef}>
           {elements.map((element) => renderShape(element, selectedId, selectShape))}
           {isDrawing && newShapeDef && newShapeDef.side === side && renderShape(newShapeDef, selectedId, selectShape)}
-          <Transformer ref={transformerRef} />
+          <Transformer
+            ref={transformerRef}
+            boundBoxFunc={(oldBox, newBox) => {
+              // limit resize
+              if (newBox.width < 5 || newBox.height < 5) {
+                return oldBox;
+              }
+              return newBox;
+            }}
+          />
         </Layer>
       </Stage>
     </StageContainer>

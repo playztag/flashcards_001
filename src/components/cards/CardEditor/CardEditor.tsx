@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Card, CardElement } from '../../../types/Card';
-import { CardEditorToolbar } from './/CardEditorToolbar';
+import { CardEditorToolbar } from './CardEditorToolbar';
 import { CardEditorStage } from './CardEditorStage';
 import { EditorContainer, EditArea, SideBySideContainer, SaveButton } from './CardEditorStyles';
 import { handleStageMouseDown, handleStageMouseMove, handleStageMouseUp } from './CardEditorUtils';
@@ -21,6 +21,7 @@ const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
   const [tool, setTool] = useState<'select' | 'rectangle' | 'circle' | 'text'>('select');
   const [color, setColor] = useState("#000000");
   const [isDrawing, setIsDrawing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [newShapeDef, setNewShapeDef] = useState<CardElement | null>(null);
 
   const stageARef = useRef(null);
@@ -38,6 +39,59 @@ const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
     onSave(updatedCard);
   };
 
+  const handleMouseDown = (side: 'A' | 'B', e: any) => {
+    const stage = e.target.getStage();
+    const clickedOnEmpty = e.target === stage;
+    
+    if (clickedOnEmpty) {
+      selectShape(null);
+      if (tool !== 'select') {
+        setIsDrawing(true);
+        const pos = stage.getPointerPosition();
+        setNewShapeDef({
+          id: `${side}${Date.now()}`,
+          type: tool,
+          side,
+          position: { x: pos.x, y: pos.y, width: 0, height: 0 },
+          style: { fill: color, stroke: color, strokeWidth: 2 },
+          content: tool === 'text' ? 'New Text' : '',
+        });
+      }
+    } else {
+      const clickedOnTransformer = e.target.getParent().className === 'Transformer';
+      if (!clickedOnTransformer) {
+        const id = e.target.id();
+        selectShape(id);
+      }
+      setIsDragging(true);
+    }
+  };
+
+  const handleMouseMove = (e: any) => {
+    if (isDrawing && newShapeDef) {
+      const stage = e.target.getStage();
+      const pos = stage.getPointerPosition();
+      setNewShapeDef({
+        ...newShapeDef,
+        position: {
+          ...newShapeDef.position,
+          width: pos.x - newShapeDef.position.x,
+          height: pos.y - newShapeDef.position.y,
+        },
+      });
+    }
+  };
+
+  const handleMouseUp = (side: 'A' | 'B') => {
+    if (isDrawing && newShapeDef) {
+      const setElements = side === 'A' ? setSideAElements : setSideBElements;
+      setElements(prevElements => [...prevElements, newShapeDef]);
+      setIsDrawing(false);
+      setNewShapeDef(null);
+    }
+    setIsDragging(false);
+  };
+
   return (
     <EditorContainer>
       <h2>Edit Card</h2>
@@ -53,14 +107,15 @@ const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
             selectedId={selectedId}
             selectShape={selectShape}
             isDrawing={isDrawing}
+            isDragging={isDragging}
             setIsDrawing={setIsDrawing}
             newShapeDef={newShapeDef}
             setNewShapeDef={setNewShapeDef}
             tool={tool}
             color={color}
-            onMouseDown={(e) => handleStageMouseDown('A', e, tool, color, setIsDrawing, setNewShapeDef, selectShape)}
-            onMouseMove={(e) => handleStageMouseMove(e, isDrawing, newShapeDef, setNewShapeDef)}
-            onMouseUp={() => handleStageMouseUp(isDrawing, newShapeDef, setIsDrawing, setNewShapeDef, setSideAElements)}
+            onMouseDown={(e) => handleMouseDown('A', e)}
+            onMouseMove={handleMouseMove}
+            onMouseUp={() => handleMouseUp('A')}
           />
           <CardEditorStage
             side="B"
@@ -71,14 +126,15 @@ const CardEditor: React.FC<CardEditorProps> = ({ card, onSave }) => {
             selectedId={selectedId}
             selectShape={selectShape}
             isDrawing={isDrawing}
+            isDragging={isDragging}
             setIsDrawing={setIsDrawing}
             newShapeDef={newShapeDef}
             setNewShapeDef={setNewShapeDef}
             tool={tool}
             color={color}
-            onMouseDown={(e) => handleStageMouseDown('B', e, tool, color, setIsDrawing, setNewShapeDef, selectShape)}
-            onMouseMove={(e) => handleStageMouseMove(e, isDrawing, newShapeDef, setNewShapeDef)}
-            onMouseUp={() => handleStageMouseUp(isDrawing, newShapeDef, setIsDrawing, setNewShapeDef, setSideBElements)}
+            onMouseDown={(e) => handleMouseDown('B', e)}
+            onMouseMove={handleMouseMove}
+            onMouseUp={() => handleMouseUp('B')}
           />
         </SideBySideContainer>
         <SaveButton onClick={handleSave}>Save Card</SaveButton>
